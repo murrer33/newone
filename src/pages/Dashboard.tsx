@@ -2,7 +2,8 @@ import React from 'react';
 import { BarChart3, TrendingUp, TrendingDown, DollarSign, MessageSquare } from 'lucide-react';
 import MarketOverview from '../components/MarketOverview';
 import NewsAnalysis from '../components/NewsAnalysis';
-import { useLivePrice } from '../hooks/useLivePrice'; // For real-time prices
+import { useLivePrice } from '../hooks/useLivePrice';
+import { useNews } from '../hooks/useNews'; // Import the useNews hook
 
 // Mock data (replace with real data or API calls)
 const popularStocks = [
@@ -11,14 +12,12 @@ const popularStocks = [
   { symbol: 'TSLA', name: 'Tesla Inc.', price: 750.00, changePercent: 3.2 },
 ];
 
-const generateMarketNews = () => [
-  { title: 'Market Rally Continues', content: 'Stocks rise as investors remain optimistic.' },
-  { title: 'Tech Stocks Surge', content: 'Tech giants lead the market gains.' },
-];
-
 const Dashboard: React.FC = () => {
   // Real-time price for AAPL
   const { price: aaplPrice } = useLivePrice('AAPL', 150);
+
+  // Fetch real news data
+  const { news, loading, error } = useNews('AAPL');
 
   // Market summary stats
   const marketStats = [
@@ -55,9 +54,6 @@ const Dashboard: React.FC = () => {
   // Top gainers and losers
   const topGainers = [...popularStocks].sort((a, b) => b.changePercent - a.changePercent).slice(0, 3);
   const topLosers = [...popularStocks].sort((a, b) => a.changePercent - b.changePercent).slice(0, 3);
-
-  // Market news
-  const marketNews = generateMarketNews();
 
   // Social media sentiment summary
   const sentimentSummary = {
@@ -194,7 +190,13 @@ const Dashboard: React.FC = () => {
 
       {/* Market News with Analysis */}
       <div className="mt-8">
-        <NewsAnalysis news={marketNews} />
+        {loading ? (
+          <p className="text-center text-gray-500 dark:text-gray-400">Loading news...</p>
+        ) : error ? (
+          <p className="text-center text-red-500 dark:text-red-400">{error}</p>
+        ) : (
+          <NewsAnalysis news={news} />
+        )}
       </div>
     </div>
   );
