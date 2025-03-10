@@ -1,5 +1,3 @@
-import WebSocket from 'ws';
-
 const FINNHUB_API_KEY = 'cut0dn1r01qrsirjvtkgcut0dn1r01qrsirjvtl0'; // Replace with your Finnhub API key
 const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
 
