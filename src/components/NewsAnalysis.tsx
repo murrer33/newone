@@ -7,6 +7,7 @@ interface NewsArticle {
   image?: string;
   source: string;
   datetime: number;
+  impact: 'positive' | 'negative' | 'neutral';
 }
 
 interface NewsAnalysisProps {
@@ -44,6 +45,19 @@ const NewsAnalysis: React.FC<NewsAnalysisProps> = ({ news }) => {
                 <p className="text-xs text-gray-400 dark:text-gray-500">
                   {new Date(article.datetime * 1000).toLocaleDateString()}
                 </p>
+              </div>
+              <div className="ml-auto">
+                <span
+                  className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                    article.impact === 'positive'
+                      ? 'bg-green-100 text-green-800'
+                      : article.impact === 'negative'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}
+                >
+                  {article.impact}
+                </span>
               </div>
             </div>
           </div>
