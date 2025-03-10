@@ -2,38 +2,15 @@ import React from 'react';
 import { BarChart3, TrendingUp, TrendingDown, DollarSign, MessageSquare } from 'lucide-react';
 import MarketOverview from '../components/MarketOverview';
 import NewsAnalysis from '../components/NewsAnalysis';
-import { useLivePrice } from '../hooks/useLivePrice'; // For real-time prices
+import { useStocks } from '../contexts/StockContext'; // Import the useStocks hook
 import { useNews } from '../hooks/useNews'; // For real news
 
-// Define the popular stocks (without hardcoded prices)
-const popularStocks = [
-  { symbol: 'AAPL', name: 'Apple Inc.' },
-  { symbol: 'GOOGL', name: 'Alphabet Inc.' },
-  { symbol: 'TSLA', name: 'Tesla Inc.' },
-];
-
 const Dashboard: React.FC = () => {
-  // Fetch real-time prices for popular stocks
-  const { price: aaplPrice } = useLivePrice('AAPL', 0);
-  const { price: googlPrice } = useLivePrice('GOOGL', 0);
-  const { price: tslaPrice } = useLivePrice('TSLA', 0);
-
-  // Update the popularStocks array with real-time prices
-  const updatedPopularStocks = popularStocks.map((stock) => {
-    switch (stock.symbol) {
-      case 'AAPL':
-        return { ...stock, price: aaplPrice };
-      case 'GOOGL':
-        return { ...stock, price: googlPrice };
-      case 'TSLA':
-        return { ...stock, price: tslaPrice };
-      default:
-        return stock;
-    }
-  });
+  // Use the global stock context
+  const { nasdaqStocks, bistStocks, loading: stocksLoading, error: stocksError } = useStocks();
 
   // Fetch real news data
-  const { news, loading, error } = useNews('AAPL');
+  const { news, loading: newsLoading, error: newsError } = useNews('AAPL');
 
   // Market summary stats
   const marketStats = [
@@ -68,7 +45,7 @@ const Dashboard: React.FC = () => {
   ];
 
   // Top gainers and losers (updated with real-time prices)
-  const topGainers = updatedPopularStocks
+  const topGainers = nasdaqStocks
     .map((stock) => ({
       ...stock,
       changePercent: ((stock.price - 100) / 100) * 100, // Example calculation for changePercent
@@ -76,7 +53,7 @@ const Dashboard: React.FC = () => {
     .sort((a, b) => b.changePercent - a.changePercent)
     .slice(0, 2); // Top 2 gainers
 
-  const topLosers = updatedPopularStocks
+  const topLosers = nasdaqStocks
     .map((stock) => ({
       ...stock,
       changePercent: ((stock.price - 100) / 100) * 100, // Example calculation for changePercent
@@ -91,13 +68,16 @@ const Dashboard: React.FC = () => {
     neutral: 30,
   };
 
+  if (stocksLoading) return <p>Loading stock data...</p>;
+  if (stocksError) return <p>{stocksError}</p>;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Market Dashboard</h1>
 
       {/* Real-Time Prices */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        {updatedPopularStocks.map((stock) => (
+        {nasdaqStocks.slice(0, 3).map((stock) => (
           <div key={stock.symbol} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">{stock.symbol} Price</h2>
             <p className="text-3xl font-semibold text-gray-900 dark:text-white">${stock.price.toFixed(2)}</p>
@@ -219,14 +199,14 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Market Overview */}
-      <MarketOverview stocks={updatedPopularStocks} />
+      <MarketOverview stocks={nasdaqStocks} />
 
       {/* Market News with Analysis */}
       <div className="mt-8">
-        {loading ? (
+        {newsLoading ? (
           <p className="text-center text-gray-500 dark:text-gray-400">Loading news...</p>
-        ) : error ? (
-          <p className="text-center text-red-500 dark:text-red-400">{error}</p>
+        ) : newsError ? (
+          <p className="text-center text-red-500 dark:text-red-400">{newsError}</p>
         ) : (
           <NewsAnalysis news={news} />
         )}
