@@ -33,26 +33,40 @@ class FinnhubAPI {
   }
 
   private connect() {
+    console.log('Connecting to Finnhub WebSocket...');
     this.socket = new WebSocket(`wss://ws.finnhub.io?token=${FINNHUB_API_KEY}`);
 
+    this.socket.onopen = () => {
+      console.log('WebSocket connection opened.');
+    };
+
     this.socket.onmessage = (event) => {
-      const data = JSON.parse(event.data.toString());
-      if (data.type === 'trade') {
-        const symbol = data.data[0]?.s;
-        if (symbol && this.subscribers.has(symbol)) {
-          this.subscribers.get(symbol)?.forEach(callback => {
-            callback({
-              price: data.data[0].p,
-              timestamp: new Date(data.data[0].t).toISOString(),
+      try {
+        const data = JSON.parse(event.data.toString());
+        console.log('Received WebSocket message:', data);
+        if (data.type === 'trade') {
+          const symbol = data.data[0]?.s;
+          if (symbol && this.subscribers.has(symbol)) {
+            this.subscribers.get(symbol)?.forEach(callback => {
+              callback({
+                price: data.data[0].p,
+                timestamp: new Date(data.data[0].t).toISOString(),
+              });
             });
-          });
+          }
         }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
       }
     };
 
     this.socket.onclose = () => {
       console.log('WebSocket connection closed. Reconnecting...');
       setTimeout(() => this.connect(), 5000);
+    };
+
+    this.socket.onerror = (error) => {
+      console.error('WebSocket error:', error);
     };
   }
 
