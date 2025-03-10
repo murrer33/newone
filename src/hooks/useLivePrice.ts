@@ -1,20 +1,26 @@
 import { useState, useEffect } from 'react';
-import { simulateLivePrices } from '../services/socket';
+import { finnhubAPI } from '../services/finnhub';
 
-export const useLivePrice = (initialPrice: number) => {
+export const useLivePrice = (symbol: string, initialPrice: number) => {
   const [price, setPrice] = useState(initialPrice);
   const [priceHistory, setPriceHistory] = useState<{ price: number; timestamp: string }[]>([]);
   const [change, setChange] = useState(0);
   const [changePercent, setChangePercent] = useState(0);
 
   useEffect(() => {
-    const startPrice = initialPrice;
-    
-    const cleanup = simulateLivePrices((data) => {
+    // Get initial quote
+    finnhubAPI.getQuote(symbol).then((quote) => {
+      setPrice(quote.c);
+      setChange(quote.d);
+      setChangePercent(quote.dp);
+    });
+
+    // Subscribe to real-time updates
+    const handleUpdate = (data: { price: number; timestamp: string }) => {
       setPrice(prev => {
-        const newPrice = +(prev + data.price).toFixed(2);
-        const priceChange = +(newPrice - startPrice).toFixed(2);
-        const priceChangePercent = +((priceChange / startPrice) * 100).toFixed(2);
+        const newPrice = data.price;
+        const priceChange = +(newPrice - initialPrice).toFixed(2);
+        const priceChangePercent = +((priceChange / initialPrice) * 100).toFixed(2);
         
         setChange(priceChange);
         setChangePercent(priceChangePercent);
@@ -23,10 +29,14 @@ export const useLivePrice = (initialPrice: number) => {
         
         return newPrice;
       });
-    });
+    };
 
-    return () => cleanup();
-  }, [initialPrice]);
+    finnhubAPI.subscribeToSymbol(symbol, handleUpdate);
+
+    return () => {
+      finnhubAPI.unsubscribeFromSymbol(symbol, handleUpdate);
+    };
+  }, [symbol, initialPrice]);
 
   return { price, change, changePercent, priceHistory };
 };
