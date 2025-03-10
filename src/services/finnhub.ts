@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 
-const FINNHUB_API_KEY = 'cut0dn1r01qrsirjvtkgcut0dn1r01qrsirjvtl0';
+const FINNHUB_API_KEY = 'cut0dn1r01qrsirjvtkgcut0dn1r01qrsirjvtl0'; // Replace with your Finnhub API key
 const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
 
 export interface FinnhubQuote {
@@ -43,7 +43,7 @@ class FinnhubAPI {
           this.subscribers.get(symbol)?.forEach(callback => {
             callback({
               price: data.data[0].p,
-              timestamp: new Date(data.data[0].t).toISOString()
+              timestamp: new Date(data.data[0].t).toISOString(),
             });
           });
         }
@@ -93,3 +93,9 @@ class FinnhubAPI {
 }
 
 export const finnhubAPI = new FinnhubAPI();
+
+// Export the subscribe and unsubscribe functions for use in hooks
+export const listenToLivePrices = (symbol: string, callback: (data: { price: number; timestamp: string }) => void) => {
+  finnhubAPI.subscribeToSymbol(symbol, callback);
+  return () => finnhubAPI.unsubscribeFromSymbol(symbol, callback);
+};
