@@ -2,8 +2,8 @@ import React from 'react';
 import { BarChart3, TrendingUp, TrendingDown, DollarSign, MessageSquare } from 'lucide-react';
 import MarketOverview from '../components/MarketOverview';
 import NewsAnalysis from '../components/NewsAnalysis';
-import { useLivePrice } from '../hooks/useLivePrice';
-import { useNews } from '../hooks/useNews'; // Import the useNews hook
+import { useLivePrice } from '../hooks/useLivePrice'; // For real-time prices
+import { useNews } from '../hooks/useNews'; // For real news
 
 // Mock data (replace with real data or API calls)
 const popularStocks = [
@@ -13,8 +13,10 @@ const popularStocks = [
 ];
 
 const Dashboard: React.FC = () => {
-  // Real-time price for AAPL
-  const { price: aaplPrice } = useLivePrice('AAPL', 150);
+  // Real-time prices for popular stocks
+  const { price: aaplPrice } = useLivePrice('AAPL', 150.25);
+  const { price: googlPrice } = useLivePrice('GOOGL', 2800.50);
+  const { price: tslaPrice } = useLivePrice('TSLA', 750.00);
 
   // Fetch real news data
   const { news, loading, error } = useNews('AAPL');
@@ -51,9 +53,14 @@ const Dashboard: React.FC = () => {
     },
   ];
 
-  // Top gainers and losers
-  const topGainers = [...popularStocks].sort((a, b) => b.changePercent - a.changePercent).slice(0, 3);
-  const topLosers = [...popularStocks].sort((a, b) => a.changePercent - b.changePercent).slice(0, 3);
+  // Top gainers and losers (updated with real-time prices)
+  const topGainers = [
+    { symbol: 'AAPL', name: 'Apple Inc.', price: aaplPrice, changePercent: 1.5 },
+    { symbol: 'TSLA', name: 'Tesla Inc.', price: tslaPrice, changePercent: 3.2 },
+  ];
+  const topLosers = [
+    { symbol: 'GOOGL', name: 'Alphabet Inc.', price: googlPrice, changePercent: -0.75 },
+  ];
 
   // Social media sentiment summary
   const sentimentSummary = {
@@ -66,10 +73,20 @@ const Dashboard: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Market Dashboard</h1>
 
-      {/* Real-Time AAPL Price */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Real-Time AAPL Price</h2>
-        <p className="text-3xl font-semibold text-gray-900 dark:text-white">${aaplPrice.toFixed(2)}</p>
+      {/* Real-Time Prices */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">AAPL Price</h2>
+          <p className="text-3xl font-semibold text-gray-900 dark:text-white">${aaplPrice.toFixed(2)}</p>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">GOOGL Price</h2>
+          <p className="text-3xl font-semibold text-gray-900 dark:text-white">${googlPrice.toFixed(2)}</p>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">TSLA Price</h2>
+          <p className="text-3xl font-semibold text-gray-900 dark:text-white">${tslaPrice.toFixed(2)}</p>
+        </div>
       </div>
 
       {/* Market Summary */}
