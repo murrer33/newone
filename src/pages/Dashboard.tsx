@@ -2,7 +2,7 @@ import React from 'react';
 import { BarChart3, TrendingUp, TrendingDown, DollarSign, MessageSquare } from 'lucide-react';
 import MarketOverview from '../components/MarketOverview';
 import NewsAnalysis from '../components/NewsAnalysis';
-import { useStocks } from '../contexts/StockContext'; // Import the useStocks hook
+import { useStocks } from '../context/StockContext'; // Import the useStocks hook
 import { useNews } from '../hooks/useNews'; // For real news
 
 const Dashboard: React.FC = () => {
