@@ -94,6 +94,56 @@ const Dashboard: React.FC = () => {
         ))}
       </div>
 
+      {/* Social Media Sentiment Overview */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+        <div className="flex items-center mb-4">
+          <MessageSquare className="h-5 w-5 text-blue-500 mr-2" />
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Market Sentiment</h2>
+        </div>
+
+        <div className="flex flex-col md:flex-row items-center justify-between">
+          <div className="mb-4 md:mb-0">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Overall market sentiment based on social media analysis</p>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center">
+                <div className="w-3 h-3 rounded-full bg-green-500 mr-1"></div>
+                <span className="text-sm text-gray-700 dark:text-gray-300">Positive: {sentimentSummary.positive}%</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 rounded-full bg-red-500 mr-1"></div>
+                <span className="text-sm text-gray-700 dark:text-gray-300">Negative: {sentimentSummary.negative}%</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 rounded-full bg-gray-400 mr-1"></div>
+                <span className="text-sm text-gray-700 dark:text-gray-300">Neutral: {sentimentSummary.neutral}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full md:w-1/2 lg:w-1/3">
+            <div className="w-full h-6 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div className="flex h-full">
+                <div 
+                  className="bg-green-500 h-full" 
+                  style={{ width: `${sentimentSummary.positive}%` }}
+                ></div>
+                <div 
+                  className="bg-gray-400 h-full" 
+                  style={{ width: `${sentimentSummary.neutral}%` }}
+                ></div>
+                <div 
+                  className="bg-red-500 h-full" 
+                  style={{ width: `${sentimentSummary.negative}%` }}
+                ></div>
+              </div>
+            </div>
+            <div className="flex justify-between mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <span>Trending topics: #earnings #inflation #tech #growth</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Top Gainers & Losers */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
