@@ -1,13 +1,11 @@
 useEffect(() => {
   const fetchPrices = async () => {
     try {
-      const apiKey = 'cut0dn1r01qrsirjvtkgcut0dn1r01qrsirjvtl0'; // Replace with your Finnhub API key
-
       // Fetch NASDAQ stock prices
       const updatedNasdaqStocks = await Promise.all(
         nasdaqTop50.map(async (stock) => {
           try {
-            const { price } = useLivePrice(stock.symbol, 0, apiKey); // Pass the API key
+            const { price } = useLivePrice(stock.symbol, 0); // No API key needed
             console.log(`Fetched price for ${stock.symbol}:`, price); // Log fetched price
             return { ...stock, price };
           } catch (err) {
@@ -21,7 +19,7 @@ useEffect(() => {
       const updatedBistStocks = await Promise.all(
         bist100.map(async (stock) => {
           try {
-            const { price } = useLivePrice(stock.symbol, 0, apiKey); // Pass the API key
+            const { price } = useLivePrice(stock.symbol, 0); // No API key needed
             console.log(`Fetched price for ${stock.symbol}:`, price); // Log fetched price
             return { ...stock, price };
           } catch (err) {
