@@ -1,6 +1,7 @@
+// This file is now deprecated as we're using Finnhub WebSocket
+// Keeping the file for reference but all functionality has moved to finnhub.ts
 import { io } from 'socket.io-client';
 
-// In a real app, this would be your WebSocket server URL
 const SOCKET_URL = 'wss://api.example.com';
 
 export const socket = io(SOCKET_URL, {
@@ -20,15 +21,14 @@ export const disconnectSocket = () => {
   }
 };
 
-// Simulate live price updates
 export const simulateLivePrices = (callback: (data: any) => void) => {
   const interval = setInterval(() => {
-    const randomChange = (Math.random() - 0.5) * 2; // Random value between -1 and 1
+    const randomChange = (Math.random() - 0.5) * 2;
     callback({
       price: randomChange,
       timestamp: new Date().toISOString()
     });
-  }, 3000); // Update every 3 seconds
+  }, 3000);
 
   return () => clearInterval(interval);
 };
