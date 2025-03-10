@@ -5,18 +5,32 @@ import NewsAnalysis from '../components/NewsAnalysis';
 import { useLivePrice } from '../hooks/useLivePrice'; // For real-time prices
 import { useNews } from '../hooks/useNews'; // For real news
 
-// Mock data (replace with real data or API calls)
+// Define the popular stocks (without hardcoded prices)
 const popularStocks = [
-  { symbol: 'AAPL', name: 'Apple Inc.', price: 150.25, changePercent: 1.5 },
-  { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 2800.50, changePercent: -0.75 },
-  { symbol: 'TSLA', name: 'Tesla Inc.', price: 750.00, changePercent: 3.2 },
+  { symbol: 'AAPL', name: 'Apple Inc.' },
+  { symbol: 'GOOGL', name: 'Alphabet Inc.' },
+  { symbol: 'TSLA', name: 'Tesla Inc.' },
 ];
 
 const Dashboard: React.FC = () => {
-  // Real-time prices for popular stocks
-  const { price: aaplPrice } = useLivePrice('AAPL', 150.25);
-  const { price: googlPrice } = useLivePrice('GOOGL', 2800.50);
-  const { price: tslaPrice } = useLivePrice('TSLA', 750.00);
+  // Fetch real-time prices for popular stocks
+  const { price: aaplPrice } = useLivePrice('AAPL', 0);
+  const { price: googlPrice } = useLivePrice('GOOGL', 0);
+  const { price: tslaPrice } = useLivePrice('TSLA', 0);
+
+  // Update the popularStocks array with real-time prices
+  const updatedPopularStocks = popularStocks.map((stock) => {
+    switch (stock.symbol) {
+      case 'AAPL':
+        return { ...stock, price: aaplPrice };
+      case 'GOOGL':
+        return { ...stock, price: googlPrice };
+      case 'TSLA':
+        return { ...stock, price: tslaPrice };
+      default:
+        return stock;
+    }
+  });
 
   // Fetch real news data
   const { news, loading, error } = useNews('AAPL');
@@ -54,13 +68,21 @@ const Dashboard: React.FC = () => {
   ];
 
   // Top gainers and losers (updated with real-time prices)
-  const topGainers = [
-    { symbol: 'AAPL', name: 'Apple Inc.', price: aaplPrice, changePercent: 1.5 },
-    { symbol: 'TSLA', name: 'Tesla Inc.', price: tslaPrice, changePercent: 3.2 },
-  ];
-  const topLosers = [
-    { symbol: 'GOOGL', name: 'Alphabet Inc.', price: googlPrice, changePercent: -0.75 },
-  ];
+  const topGainers = updatedPopularStocks
+    .map((stock) => ({
+      ...stock,
+      changePercent: ((stock.price - 100) / 100) * 100, // Example calculation for changePercent
+    }))
+    .sort((a, b) => b.changePercent - a.changePercent)
+    .slice(0, 2); // Top 2 gainers
+
+  const topLosers = updatedPopularStocks
+    .map((stock) => ({
+      ...stock,
+      changePercent: ((stock.price - 100) / 100) * 100, // Example calculation for changePercent
+    }))
+    .sort((a, b) => a.changePercent - b.changePercent)
+    .slice(0, 1); // Top 1 loser
 
   // Social media sentiment summary
   const sentimentSummary = {
@@ -75,18 +97,12 @@ const Dashboard: React.FC = () => {
 
       {/* Real-Time Prices */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">AAPL Price</h2>
-          <p className="text-3xl font-semibold text-gray-900 dark:text-white">${aaplPrice.toFixed(2)}</p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">GOOGL Price</h2>
-          <p className="text-3xl font-semibold text-gray-900 dark:text-white">${googlPrice.toFixed(2)}</p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">TSLA Price</h2>
-          <p className="text-3xl font-semibold text-gray-900 dark:text-white">${tslaPrice.toFixed(2)}</p>
-        </div>
+        {updatedPopularStocks.map((stock) => (
+          <div key={stock.symbol} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{stock.symbol} Price</h2>
+            <p className="text-3xl font-semibold text-gray-900 dark:text-white">${stock.price.toFixed(2)}</p>
+          </div>
+        ))}
       </div>
 
       {/* Market Summary */}
@@ -203,7 +219,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Market Overview */}
-      <MarketOverview stocks={popularStocks} />
+      <MarketOverview stocks={updatedPopularStocks} />
 
       {/* Market News with Analysis */}
       <div className="mt-8">
