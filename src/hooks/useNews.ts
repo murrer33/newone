@@ -51,18 +51,29 @@ export const useNews = (symbol: string) => {
   }, [symbol]);
 
   // Simple impact analysis based on keywords in the headline
-  const getImpact = (headline: string): 'positive' | 'negative' | 'neutral' => {
-    const positiveKeywords = ['up', 'rise', 'gain', 'positive', 'bullish'];
-    const negativeKeywords = ['down', 'fall', 'drop', 'negative', 'bearish'];
+  const getImpact = (headline: string): 'high-positive' | 'positive' | 'neutral' | 'negative' | 'high-negative' => {
+  const positiveKeywords = ['up', 'rise', 'gain', 'positive', 'bullish', 'surge', 'soar'];
+  const negativeKeywords = ['down', 'fall', 'drop', 'negative', 'bearish', 'plunge', 'crash'];
 
-    if (positiveKeywords.some((keyword) => headline.toLowerCase().includes(keyword))) {
-      return 'positive';
-    } else if (negativeKeywords.some((keyword) => headline.toLowerCase().includes(keyword))) {
-      return 'negative';
-    } else {
-      return 'neutral';
-    }
-  };
+  const positiveCount = positiveKeywords.filter((keyword) =>
+    headline.toLowerCase().includes(keyword)
+  ).length;
+  const negativeCount = negativeKeywords.filter((keyword) =>
+    headline.toLowerCase().includes(keyword)
+  ).length;
+
+  if (positiveCount > 2) {
+    return 'high-positive';
+  } else if (positiveCount > 0) {
+    return 'positive';
+  } else if (negativeCount > 2) {
+    return 'high-negative';
+  } else if (negativeCount > 0) {
+    return 'negative';
+  } else {
+    return 'neutral';
+  }
+};
 
   return { news, loading, error };
 };
