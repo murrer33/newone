@@ -1,7 +1,7 @@
-const FINNHUB_API_KEY = 'cut0dn1r01qrsirjvtkgcut0dn1r01qrsirjvtl0'; // Replace with your Finnhub API key
-const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
-
 import { io } from 'socket.io-client';
+
+const API_KEY = 'cut0dn1r01qrsirjvtkgcut0dn1r01qrsirjvtl0'; // Replace with your Finnhub API key
+const SOCKET_URL = `wss://ws.finnhub.io?token=${API_KEY}`; // Define SOCKET_URL
 
 export const socket = io(SOCKET_URL, {
   autoConnect: false,
