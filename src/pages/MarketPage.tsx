@@ -1,6 +1,6 @@
 import React from 'react';
 import { Globe, TrendingUp, TrendingDown, Search } from 'lucide-react';
-import { useStocks } from '../context/Stockcontext';
+import { useStocks } from '../context/StockContext';
 import StockCard from '../components/StockCard';
 
 const MarketPage: React.FC = () => {
