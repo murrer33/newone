@@ -1,33 +1,37 @@
-import { io, Socket } from 'socket.io-client';
-
+// finnhub.ts
 export const listenToLivePrices = (
-  symbol: string,
-  callback: (data: { price: number; timestamp: string }) => void
+  symbols: string[],
+  callback: (data: { symbol: string; price: number; timestamp: string }) => void
 ) => {
-  const apiKey = 'cut0dn1r01qrsirjvtkgcut0dn1r01qrsirjvtl0'; // Hardcoded API key
+  const apiKey = 'cut0dn1r01qrsirjvtkgcut0dn1r01qrsirjvtl0';
+  const socket = new WebSocket(`wss://ws.finnhub.io?token=${apiKey}`);
 
-  // Initialize the WebSocket connection with the API key
-  const socket: Socket = io('wss://ws.finnhub.io', {
-    query: {
-      token: apiKey,
-    },
-  });
+  socket.onopen = () => {
+    symbols.forEach((symbol) => {
+      socket.send(JSON.stringify({ type: 'subscribe', symbol }));
+    });
+  };
 
-  // Subscribe to the symbol
-  socket.emit('subscribe', symbol);
-
-  // Listen for updates
-  socket.on('message', (data: any) => {
+  socket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
     if (data.type === 'trade' && data.data) {
-      const price = data.data[0].p;
-      const timestamp = new Date().toISOString();
-      callback({ price, timestamp });
+      data.data.forEach((trade: any) => {
+        const symbol = trade.s;
+        const price = trade.p;
+        const timestamp = new Date().toISOString();
+        callback({ symbol, price, timestamp });
+      });
     }
-  });
+  };
 
-  // Cleanup function to unsubscribe
+  socket.onerror = (error) => {
+    console.error('WebSocket error:', error);
+  };
+
   return () => {
-    socket.emit('unsubscribe', symbol);
-    socket.disconnect(); // Disconnect the WebSocket
+    symbols.forEach((symbol) => {
+      socket.send(JSON.stringify({ type: 'unsubscribe', symbol }));
+    });
+    socket.close();
   };
 };
