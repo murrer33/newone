@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { TrendingUp, TrendingDown, DollarSign, BarChart3, Activity, Clock, AlertTriangle } from 'lucide-react';
-import { useStocks } from '../context/stockcontext';
+import { useStocks } from '../context/StockContext';
 import StockChart from '../components/StockChart';
 import TechnicalIndicator from '../components/TechnicalIndicator';
 import PredictionCard from '../components/PredictionCard';
