@@ -1,6 +1,6 @@
 import React from 'react';
 import { Filter, Search, ArrowDownUp } from 'lucide-react';
-import { useStocks } from '../context/stockcontext';
+import { useStocks } from '../context/Stockcontext';
 import { Link } from 'react-router-dom';
 
 const Screener: React.FC = () => {
