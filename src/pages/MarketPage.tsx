@@ -1,14 +1,16 @@
 import React from 'react';
 import { Globe, TrendingUp, TrendingDown, Search } from 'lucide-react';
-import { popularStocks } from '../utils/mockData';
+import { useStocks } from '../context/stockcontext';
 import StockCard from '../components/StockCard';
 
 const MarketPage: React.FC = () => {
+  const { nasdaqStocks, bistStocks, loading, error } = useStocks();
+  const allStocks = [...nasdaqStocks, ...bistStocks];
   const [searchTerm, setSearchTerm] = React.useState('');
-  const [sortBy, setSortBy] = React.useState<'symbol' | 'price' | 'change'>('symbol');
+  const [sortBy, setSortBy] = React.useState<'symbol' | 'price'>('symbol'); // Removed 'change'
   const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('asc');
-  
-  const handleSort = (column: 'symbol' | 'price' | 'change') => {
+
+  const handleSort = (column: 'symbol' | 'price') => {
     if (sortBy === column) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -16,44 +18,40 @@ const MarketPage: React.FC = () => {
       setSortDirection('asc');
     }
   };
-  
-  const filteredStocks = popularStocks.filter(stock => 
-    stock.symbol.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    stock.name.toLowerCase().includes(searchTerm.toLowerCase())
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+
+  const filteredStocks = allStocks.filter(
+    (stock) =>
+      stock.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      stock.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  
+
   const sortedStocks = [...filteredStocks].sort((a, b) => {
     if (sortBy === 'symbol') {
-      return sortDirection === 'asc' 
+      return sortDirection === 'asc'
         ? a.symbol.localeCompare(b.symbol)
         : b.symbol.localeCompare(a.symbol);
-    } else if (sortBy === 'price') {
-      return sortDirection === 'asc' 
-        ? a.price - b.price
-        : b.price - a.price;
     } else {
-      return sortDirection === 'asc' 
-        ? a.changePercent - b.changePercent
-        : b.changePercent - a.changePercent;
+      return sortDirection === 'asc' ? a.price - b.price : b.price - a.price;
     }
   });
-  
-  // Market indices
+
+  // Static market indices (could be fetched separately if needed)
   const marketIndices = [
     { name: 'S&P 500', value: '4,927.11', change: '+0.41%', isPositive: true },
     { name: 'Dow Jones', value: '38,239.98', change: '+0.56%', isPositive: true },
     { name: 'Nasdaq', value: '15,927.90', change: '-0.27%', isPositive: false },
-    { name: 'Russell 2000', value: '2,018.56', change: '+0.12%', isPositive: true }
+    { name: 'Russell 2000', value: '2,018.56', change: '+0.12%', isPositive: true },
   ];
-  
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
         <Globe className="h-6 w-6 text-blue-500 mr-2" />
         Market Overview
       </h1>
-      
-      {/* Market Indices */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {marketIndices.map((index, i) => (
           <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
@@ -72,8 +70,6 @@ const MarketPage: React.FC = () => {
           </div>
         ))}
       </div>
-      
-      {/* Search and Filter */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div className="relative w-full md:w-64 mb-4 md:mb-0">
@@ -88,13 +84,12 @@ const MarketPage: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          
           <div className="flex space-x-2">
             <button
               onClick={() => handleSort('symbol')}
               className={`px-3 py-2 rounded-md text-sm font-medium ${
-                sortBy === 'symbol' 
-                  ? 'bg-blue-500 text-white' 
+                sortBy === 'symbol'
+                  ? 'bg-blue-500 text-white'
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
               }`}
             >
@@ -103,34 +98,21 @@ const MarketPage: React.FC = () => {
             <button
               onClick={() => handleSort('price')}
               className={`px-3 py-2 rounded-md text-sm font-medium ${
-                sortBy === 'price' 
-                  ? 'bg-blue-500 text-white' 
+                sortBy === 'price'
+                  ? 'bg-blue-500 text-white'
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
               }`}
             >
               Price {sortBy === 'price' && (sortDirection === 'asc' ? '↑' : '↓')}
             </button>
-            <button
-              onClick={() => handleSort('change')}
-              className={`px-3 py-2 rounded-md text-sm font-medium ${
-                sortBy === 'change' 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-              }`}
-            >
-              Change {sortBy === 'change' && (sortDirection === 'asc' ? '↑' : '↓')}
-            </button>
           </div>
         </div>
       </div>
-      
-      {/* Stocks Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {sortedStocks.map(stock => (
+        {sortedStocks.map((stock) => (
           <StockCard key={stock.symbol} stock={stock} />
         ))}
       </div>
-      
       {sortedStocks.length === 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
           <p className="text-gray-500 dark:text-gray-400">No stocks found matching "{searchTerm}"</p>
