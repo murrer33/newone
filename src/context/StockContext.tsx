@@ -1,14 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useLivePrice } from '../hooks/useLivePrice';
 
-// Define the shape of the stock data
+// Define stock interfaces
 interface Stock {
   symbol: string;
   name: string;
   price: number;
 }
 
-// Define the shape of the context
 interface StockContextType {
   nasdaqStocks: Stock[];
   bistStocks: Stock[];
@@ -16,7 +15,6 @@ interface StockContextType {
   error: string | null;
 }
 
-// Create the context
 const StockContext = createContext<StockContextType>({
   nasdaqStocks: [],
   bistStocks: [],
@@ -24,71 +22,58 @@ const StockContext = createContext<StockContextType>({
   error: null,
 });
 
-// Create a provider component
+// Hardcoded stock lists (for now)
+const nasdaqTop50 = [
+  { symbol: 'AAPL', name: 'Apple Inc.', price: 0 },
+  { symbol: 'MSFT', name: 'Microsoft Corporation', price: 0 },
+  { symbol: 'AMZN', name: 'Amazon.com Inc.', price: 0 },
+  // Add more...
+];
+
+const bist100 = [
+  { symbol: 'THYAO', name: 'Türkiye Hava Yolları', price: 0 },
+  { symbol: 'GARAN', name: 'Garanti Bankası', price: 0 },
+  { symbol: 'AKBNK', name: 'Akbank', price: 0 },
+  // Add more...
+];
+
 export const StockProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [nasdaqStocks, setNasdaqStocks] = useState<Stock[]>([]);
-  const [bistStocks, setBistStocks] = useState<Stock[]>([]);
+  const [nasdaqStocks, setNasdaqStocks] = useState<Stock[]>(nasdaqTop50);
+  const [bistStocks, setBistStocks] = useState<Stock[]>(bist100);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Hardcoded lists of NASDAQ and BIST stocks
-  const nasdaqTop50 = [
-    { symbol: 'AAPL', name: 'Apple Inc.' },
-    { symbol: 'MSFT', name: 'Microsoft Corporation' },
-    { symbol: 'AMZN', name: 'Amazon.com Inc.' },
-    // Add all 50 NASDAQ stocks...
-  ];
+  // Update stock prices dynamically
+  const updateStockPrice = (symbol: string, price: number, stockList: Stock[], setStockList: (stocks: Stock[]) => void) => {
+    setStockList((prev) =>
+      prev.map((stock) =>
+        stock.symbol === symbol ? { ...stock, price } : stock
+      )
+    );
+  };
 
-  const bist100 = [
-    { symbol: 'THYAO', name: 'Türkiye Hava Yolları' },
-    { symbol: 'GARAN', name: 'Garanti Bankası' },
-    { symbol: 'AKBNK', name: 'Akbank' },
-    // Add all 100 BIST stocks...
-  ];
-
-  // Fetch real-time prices for all NASDAQ and BIST stocks
+  // Use useLivePrice for each stock (example for NASDAQ)
   useEffect(() => {
-    const fetchPrices = async () => {
-      try {
-        // Fetch NASDAQ stock prices
-        const updatedNasdaqStocks = await Promise.all(
-          nasdaqTop50.map(async (stock) => {
-            try {
-              const { price } = useLivePrice(stock.symbol, 0); // No API key needed
-              console.log(`Fetched price for ${stock.symbol}:`, price); // Log fetched price
-              return { ...stock, price };
-            } catch (err) {
-              console.error(`Failed to fetch price for ${stock.symbol}:`, err);
-              return { ...stock, price: 0 }; // Fallback price
-            }
-          })
-        );
+    setLoading(true);
+    const nasdaqCleanups: (() => void)[] = [];
+    const bistCleanups: (() => void)[] = [];
 
-        // Fetch BIST stock prices
-        const updatedBistStocks = await Promise.all(
-          bist100.map(async (stock) => {
-            try {
-              const { price } = useLivePrice(stock.symbol, 0); // No API key needed
-              console.log(`Fetched price for ${stock.symbol}:`, price); // Log fetched price
-              return { ...stock, price };
-            } catch (err) {
-              console.error(`Failed to fetch price for ${stock.symbol}:`, err);
-              return { ...stock, price: 0 }; // Fallback price
-            }
-          })
-        );
+    nasdaqTop50.forEach((stock) => {
+      const { price } = useLivePrice(stock.symbol, stock.price);
+      updateStockPrice(stock.symbol, price, nasdaqStocks, setNasdaqStocks);
+    });
 
-        setNasdaqStocks(updatedNasdaqStocks);
-        setBistStocks(updatedBistStocks);
-        setLoading(false);
-      } catch (err) {
-        console.error('Failed to fetch stock prices:', err);
-        setError('Failed to fetch stock prices');
-        setLoading(false);
-      }
+    bist100.forEach((stock) => {
+      const { price } = useLivePrice(stock.symbol, stock.price);
+      updateStockPrice(stock.symbol, price, bistStocks, setBistStocks);
+    });
+
+    setLoading(false);
+
+    return () => {
+      nasdaqCleanups.forEach((cleanup) => cleanup());
+      bistCleanups.forEach((cleanup) => cleanup());
     };
-
-    fetchPrices();
   }, []);
 
   return (
@@ -98,5 +83,4 @@ export const StockProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 };
 
-// Custom hook to use the stock context
-export const useStocks = () => useContext(StockContext); // Ensure this line exists
+export const useStocks = () => useContext(StockContext);
