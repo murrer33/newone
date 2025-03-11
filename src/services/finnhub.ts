@@ -7,7 +7,7 @@ export const listenToLivePrices = (
     timestamp: string;
   }) => void,
 ) => {
-  const apiKey = "cut0dn1r01qrsirjvtkgcut0dn1r01qrsirjvtl0"; //Defined here
+  const apiKey = "cv85kmpr01qqdqh408n0cv85kmpr01qqdqh408ng"; //Defined here
   const socket = new WebSocket(`wss://ws.finnhub.io?token=${apiKey}`); // Line 11
 
   socket.onopen = () => {
