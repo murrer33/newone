@@ -7,8 +7,11 @@ export const listenToLivePrices = (
   const socket = new WebSocket(`wss://ws.finnhub.io?token=${apiKey}`);
 
   socket.onopen = () => {
+    console.log('WebSocket connected');
     symbols.forEach((symbol) => {
-      socket.send(JSON.stringify({ type: 'subscribe', symbol }));
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: 'subscribe', symbol }));
+      }
     });
   };
 
@@ -28,10 +31,20 @@ export const listenToLivePrices = (
     console.error('WebSocket error:', error);
   };
 
+  socket.onclose = () => {
+    console.log('WebSocket closed');
+  };
+
   return () => {
-    symbols.forEach((symbol) => {
-      socket.send(JSON.stringify({ type: 'unsubscribe', symbol }));
-    });
-    socket.close();
+    // Only send unsubscribe if socket is open
+    if (socket.readyState === WebSocket.OPEN) {
+      symbols.forEach((symbol) => {
+        socket.send(JSON.stringify({ type: 'unsubscribe', symbol }));
+      });
+    }
+    // Close only if not already closed
+    if (socket.readyState !== WebSocket.CLOSED && socket.readyState !== WebSocket.CLOSING) {
+      socket.close();
+    }
   };
 };
