@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { StockProvider } from './context/Stockcontext'; // Adjusted to lowercase
+import { StockProvider } from './context/StockContext'; // Adjusted to lowercase
 import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
 import MarketPage from './pages/MarketPage';
