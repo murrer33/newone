@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
-import { useStocks } from '../context/stockcontext';
+import { useStocks } from '../context/StockContext';
 import LivePriceDisplay from '../components/LivePriceDisplay';
 import StockStats from '../components/StockStats';
 import StockChart from '../components/StockChart';
