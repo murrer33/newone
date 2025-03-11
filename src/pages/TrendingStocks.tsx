@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TrendingUp, Search, ArrowUpDown } from 'lucide-react';
-import { useStocks } from '../context/stockcontext';
+import { useStocks } from '../context/StockContext';
 import StockCard from '../components/StockCard';
 
 const TrendingStocks: React.FC = () => {
