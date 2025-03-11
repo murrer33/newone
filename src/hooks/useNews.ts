@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const FINNHUB_API_KEY = 'cut0dn1r01qrsirjvtkgcut0dn1r01qrsirjvtl0'; // Replace with your Finnhub API key
+const FINNHUB_API_KEY = 'cv85kmpr01qqdqh408n0cv85kmpr01qqdqh408ng'; // Replace with your Finnhub API key
 
 interface NewsArticle {
   headline: string;
