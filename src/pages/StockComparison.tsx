@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Scale, Search, X, Plus, BarChart3 } from 'lucide-react';
-import { useStocks } from '../context/stockcontext';
+import { useStocks } from '../context/StockContext';
 import {
   Chart as ChartJS,
   CategoryScale,
