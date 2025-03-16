@@ -3,12 +3,9 @@ import { HistoricalData } from '../types';
 
 interface StockChartProps {
   data: HistoricalData[];
-  symbol: string;
-  timeframe: string;
-  onTimeframeChange?: (timeframe: string) => void;
 }
 
-const StockChart: React.FC<StockChartProps> = ({ data, symbol, timeframe, onTimeframeChange }) => {
+const StockChart: React.FC<StockChartProps> = ({ data }: StockChartProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -31,7 +28,7 @@ const StockChart: React.FC<StockChartProps> = ({ data, symbol, timeframe, onTime
     const height = canvas.height - padding * 2;
 
     // Find min and max values
-    const prices = data.map(d => d.close);
+    const prices = data.map((d: HistoricalData) => d.close);
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
     const priceRange = maxPrice - minPrice;
@@ -41,7 +38,7 @@ const StockChart: React.FC<StockChartProps> = ({ data, symbol, timeframe, onTime
     ctx.strokeStyle = '#2563eb';
     ctx.lineWidth = 2;
 
-    data.forEach((point, index) => {
+    data.forEach((point: HistoricalData, index: number) => {
       const x = padding + (index / (data.length - 1)) * width;
       const y = padding + height - ((point.close - minPrice) / priceRange) * height;
 
@@ -75,7 +72,7 @@ const StockChart: React.FC<StockChartProps> = ({ data, symbol, timeframe, onTime
     ctx.textAlign = 'center';
 
     // X-axis labels
-    data.forEach((point, index) => {
+    data.forEach((point: HistoricalData, index: number) => {
       if (index % Math.floor(data.length / 5) === 0) {
         const x = padding + (index / (data.length - 1)) * width;
         ctx.fillText(new Date(point.date).toLocaleDateString(), x, canvas.height - padding + 20);

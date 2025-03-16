@@ -30,7 +30,7 @@ const StockComparison: React.FC = () => {
 
   const filteredStocks = allStocks.filter(
     (stock: StockData) =>
-      !selectedStocks.some((s) => s.symbol === stock.symbol) &&
+      !selectedStocks.some((s: StockData) => s.symbol === stock.symbol) &&
       (stock.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
         stock.name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -43,7 +43,7 @@ const StockComparison: React.FC = () => {
   };
 
   const handleRemoveStock = (symbol: string) => {
-    setSelectedStocks(selectedStocks.filter((stock) => stock.symbol !== symbol));
+    setSelectedStocks(selectedStocks.filter((stock: StockData) => stock.symbol !== symbol));
   };
 
   const generateComparisonChart = () => {
@@ -102,7 +102,7 @@ const StockComparison: React.FC = () => {
       },
       interaction: { mode: 'index' as const, intersect: false },
     };
-    return { chartData, options };
+    return { chartData: chartData as ChartData<'line', (number | null)[], unknown>, options };
   };
 
   const chartConfig = generateComparisonChart();

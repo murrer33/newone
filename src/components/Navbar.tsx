@@ -3,11 +3,11 @@ import { Link, useLocation } from 'react-router-dom';
 import { BarChart3, Search, Menu, X } from 'lucide-react';
 
 interface NavbarProps {
-  onLoginClick: () => void;
-  onRegisterClick: () => void;
+  onLoginClick?: () => void;
+  onRegisterClick?: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onLoginClick, onRegisterClick }) => {
+const Navbar: React.FC<NavbarProps> = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const location = useLocation();
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Dispatch, SetStateAction } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -29,17 +29,14 @@ ChartJS.register(
 interface PredictionChartProps {
   historicalData: HistoricalData[];
   predictions: StockPrediction[];
+  setPredictions: Dispatch<SetStateAction<StockPrediction[]>>;
 }
 
-interface Prediction {
-  date: string;
-  value: number;
-  lower_bound: number;
-  upper_bound: number;
-  confidence: number;
-}
-
-const PredictionChart: React.FC<PredictionChartProps> = ({ historicalData, predictions }) => {
+const PredictionChart: React.FC<PredictionChartProps> = ({ 
+  historicalData, 
+  predictions,
+  setPredictions 
+}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,15 +45,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({ historicalData, predi
       try {
         setIsLoading(true);
         const result = await getPredictions(historicalData);
-        // Convert StockPrediction to Prediction format
-        const formattedPredictions = result.map(pred => ({
-          date: pred.timeframe,
-          value: pred.predictedPrice,
-          lower_bound: pred.predictedPrice * (1 - pred.confidence / 100),
-          upper_bound: pred.predictedPrice * (1 + pred.confidence / 100),
-          confidence: pred.confidence
-        }));
-        setPredictions(formattedPredictions);
+        setPredictions(result);
       } catch (err) {
         setError('Failed to load predictions');
         console.error(err);
@@ -66,17 +55,17 @@ const PredictionChart: React.FC<PredictionChartProps> = ({ historicalData, predi
     };
 
     loadPredictions();
-  }, [historicalData]);
+  }, [historicalData, setPredictions]);
 
   const chartData = {
     labels: [
-      ...historicalData.map(item => item.date),
-      ...predictions.map(item => item.date)
+      ...historicalData.map((item: HistoricalData) => item.date),
+      ...predictions.map((item: StockPrediction) => item.timeframe)
     ],
     datasets: [
       {
         label: 'Historical Price',
-        data: [...historicalData.map(item => item.close), ...Array(predictions.length).fill(null)],
+        data: [...historicalData.map((item: HistoricalData) => item.close), ...Array(predictions.length).fill(null)],
         borderColor: 'rgb(59, 130, 246)',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         borderWidth: 2,
@@ -85,7 +74,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({ historicalData, predi
       },
       {
         label: 'Predicted Price',
-        data: [...Array(historicalData.length).fill(null), ...predictions.map(item => item.value)],
+        data: [...Array(historicalData.length).fill(null), ...predictions.map((item: StockPrediction) => item.predictedPrice)],
         borderColor: 'rgb(234, 88, 12)',
         backgroundColor: 'rgba(234, 88, 12, 0.1)',
         borderWidth: 2,
@@ -95,7 +84,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({ historicalData, predi
       },
       {
         label: 'Confidence Interval',
-        data: [...Array(historicalData.length).fill(null), ...predictions.map(item => item.upper_bound)],
+        data: [...Array(historicalData.length).fill(null), ...predictions.map(item => item.predictedPrice * (1 + item.confidence / 100))],
         borderColor: 'rgba(234, 88, 12, 0.2)',
         backgroundColor: 'rgba(234, 88, 12, 0.1)',
         borderWidth: 1,
@@ -104,7 +93,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({ historicalData, predi
       },
       {
         label: 'Confidence Interval',
-        data: [...Array(historicalData.length).fill(null), ...predictions.map(item => item.lower_bound)],
+        data: [...Array(historicalData.length).fill(null), ...predictions.map(item => item.predictedPrice * (1 - item.confidence / 100))],
         borderColor: 'rgba(234, 88, 12, 0.2)',
         backgroundColor: 'rgba(234, 88, 12, 0.1)',
         borderWidth: 1,
@@ -135,7 +124,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({ historicalData, predi
               return [
                 `Predicted: $${context.raw.toFixed(2)}`,
                 `Confidence: ${prediction.confidence.toFixed(1)}%`,
-                `Range: $${prediction.lower_bound.toFixed(2)} - $${prediction.upper_bound.toFixed(2)}`
+                `Range: $${(prediction.predictedPrice * (1 - prediction.confidence / 100)).toFixed(2)} - $${(prediction.predictedPrice * (1 + prediction.confidence / 100)).toFixed(2)}`
               ];
             }
             return `${context.dataset.label}: $${context.raw?.toFixed(2) || 'N/A'}`;
@@ -208,7 +197,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({ historicalData, predi
             >
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {new Date(prediction.date).toLocaleDateString()}
+                  {prediction.timeframe}
                 </span>
                 <span className={`text-sm font-medium ${
                   prediction.confidence > 80 ? 'text-green-500' :
@@ -218,10 +207,10 @@ const PredictionChart: React.FC<PredictionChartProps> = ({ historicalData, predi
                 </span>
               </div>
               <div className="text-lg font-bold text-gray-900 dark:text-white">
-                ${prediction.value.toFixed(2)}
+                ${prediction.predictedPrice.toFixed(2)}
               </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                Range: ${prediction.lower_bound.toFixed(2)} - ${prediction.upper_bound.toFixed(2)}
+                Range: ${(prediction.predictedPrice * (1 - prediction.confidence / 100)).toFixed(2)} - ${(prediction.predictedPrice * (1 + prediction.confidence / 100)).toFixed(2)}
               </div>
             </div>
           ))}

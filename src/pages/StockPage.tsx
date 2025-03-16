@@ -25,7 +25,7 @@ const StockPage: React.FC = () => {
   const { symbol } = useParams<{ symbol: string }>();
   const { nasdaqStocks, bistStocks, loading, error } = useStocks();
   const allStocks = [...nasdaqStocks, ...bistStocks];
-  const [timeframe, setTimeframe] = React.useState<'1D' | '5D' | '1W' | '1M' | '6M' | '1Y' | '5Y' | 'MAX'>('1D');
+  const [timeframe, setTimeframe] = useState<string>('1D');
   const [historicalData, setHistoricalData] = useState<HistoricalData[]>([]);
   const [historicalDataError, setHistoricalDataError] = useState<string | null>(null);
 
