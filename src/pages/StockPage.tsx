@@ -210,7 +210,16 @@ const StockPage: React.FC = () => {
               ))}
             </div>
           </div>
-          <NewsAnalysis news={newsData} />
+          <NewsAnalysis 
+            news={newsData.map(item => ({
+              headline: item.title,
+              summary: item.title, // Using title as summary since we don't have a summary in NewsItem
+              datetime: item.time,
+              source: item.source,
+              url: item.url,
+              sentiment: item.sentiment
+            }))} 
+          />
           <CompanyProfile profile={mockCompanyProfile} />
         </div>
         <div className="space-y-6">
