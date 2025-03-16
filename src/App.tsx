@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { StockProvider } from "./context/StockContext";
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
@@ -18,6 +18,7 @@ import FAQ from './components/FAQ';
 import Modal from './components/Modal';
 import './index.css';
 import './styles.css';
+import Home from './pages/Home';
 
 const App: React.FC = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -65,7 +66,8 @@ const App: React.FC = () => {
           />
           <main>
             <Routes>
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/market" element={<MarketPage />} />
               <Route path="/stock/:symbol" element={<StockPage />} />
               <Route path="/watchlist" element={<Watchlist />} />
