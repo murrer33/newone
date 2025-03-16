@@ -5,46 +5,51 @@ const bist100Stocks: StockData[] = [
   {
     symbol: 'AKBNK',
     name: 'Akbank',
-    price: 42.76,
+    currentPrice: 42.76,
     change: 0.86,
     changePercent: 2.05,
     volume: 15234567,
+    historicalData: [],
     marketCap: 222380000000
   },
   {
     symbol: 'GARAN',
     name: 'Garanti BBVA',
-    price: 44.90,
+    currentPrice: 44.90,
     change: 0.92,
     changePercent: 2.09,
     volume: 18765432,
+    historicalData: [],
     marketCap: 188580000000
   },
   {
     symbol: 'THYAO',
     name: 'Turkish Airlines',
-    price: 234.80,
+    currentPrice: 234.80,
     change: -2.30,
     changePercent: -0.97,
     volume: 12345678,
+    historicalData: [],
     marketCap: 323820000000
   },
   {
     symbol: 'EREGL',
     name: 'Eregli Iron and Steel',
-    price: 41.86,
+    currentPrice: 41.86,
     change: 0.44,
     changePercent: 1.06,
     volume: 9876543,
+    historicalData: [],
     marketCap: 146510000000
   },
   {
     symbol: 'KCHOL',
     name: 'Koc Holding',
-    price: 101.50,
+    currentPrice: 101.50,
     change: 1.50,
     changePercent: 1.50,
     volume: 7654321,
+    historicalData: [],
     marketCap: 257380000000
   }
 ];
@@ -54,91 +59,101 @@ const nasdaqStocks: StockData[] = [
   {
     symbol: 'AAPL',
     name: 'Apple Inc.',
-    price: 187.32,
-    change: 1.25,
-    changePercent: 0.67,
-    volume: 52436789,
+    currentPrice: 175.84,
+    change: 2.34,
+    changePercent: 1.35,
+    volume: 78945612,
+    historicalData: [],
     marketCap: 2950000000000
   },
   {
     symbol: 'MSFT',
     name: 'Microsoft Corporation',
-    price: 378.85,
+    currentPrice: 378.85,
     change: 2.34,
     changePercent: 0.62,
     volume: 21345678,
+    historicalData: [],
     marketCap: 2810000000000
   },
   {
     symbol: 'GOOGL',
     name: 'Alphabet Inc.',
-    price: 142.56,
-    change: -0.87,
-    changePercent: -0.61,
-    volume: 18765432,
+    currentPrice: 142.65,
+    change: -1.23,
+    changePercent: -0.85,
+    volume: 45678912,
+    historicalData: [],
     marketCap: 1790000000000
   },
   {
     symbol: 'AMZN',
     name: 'Amazon.com Inc.',
-    price: 178.12,
+    currentPrice: 178.12,
     change: 1.56,
     changePercent: 0.88,
     volume: 32145678,
+    historicalData: [],
     marketCap: 1840000000000
   },
   {
     symbol: 'NVDA',
     name: 'NVIDIA Corporation',
-    price: 875.35,
+    currentPrice: 875.35,
     change: 15.67,
     changePercent: 1.82,
     volume: 28765432,
+    historicalData: [],
     marketCap: 2160000000000
   },
   {
     symbol: 'META',
     name: 'Meta Platforms, Inc.',
-    price: 472.22,
+    currentPrice: 472.22,
     change: 5.67,
     changePercent: 1.21,
     volume: 19876543,
+    historicalData: [],
     marketCap: 1210000000000
   },
   {
     symbol: 'TSLA',
     name: 'Tesla, Inc.',
-    price: 245.67,
+    currentPrice: 245.67,
     change: -3.45,
     changePercent: -1.39,
     volume: 65432198,
+    historicalData: [],
     marketCap: 780000000000
   },
   {
     symbol: 'AVGO',
     name: 'Broadcom Inc.',
-    price: 1287.89,
+    currentPrice: 1287.89,
     change: 22.45,
     changePercent: 1.77,
     volume: 3456789,
+    historicalData: [],
     marketCap: 598000000000
   },
   {
     symbol: 'PEP',
     name: 'PepsiCo, Inc.',
-    price: 167.83,
+    currentPrice: 167.83,
     change: -0.45,
     changePercent: -0.27,
     volume: 4567890,
+    historicalData: [],
     marketCap: 230000000000
   },
   {
     symbol: 'COST',
     name: 'Costco Wholesale',
-    price: 742.56,
+    currentPrice: 742.56,
     change: 5.67,
     changePercent: 0.77,
     volume: 2345678,
+    historicalData: [],
     marketCap: 329000000000
   }
 ];
@@ -149,7 +164,7 @@ export const popularStocks: StockData[] = [...nasdaqStocks, ...bist100Stocks];
 // Generate mock historical data for a stock
 export const generateHistoricalData = (symbol: string, days: number = 30): HistoricalData[] => {
   const data: HistoricalData[] = [];
-  let basePrice = popularStocks.find(stock => stock.symbol === symbol)?.price || 100;
+  let basePrice = popularStocks.find(stock => stock.symbol === symbol)?.currentPrice || 100;
   
   // Adjust base price to make the chart look more realistic
   basePrice = basePrice * 0.9;
@@ -219,19 +234,19 @@ export const generateTechnicalIndicators = (symbol: string): TechnicalIndicator[
     },
     {
       name: 'SMA (50)',
-      value: stock.price * (1 + (Math.random() * 0.1 - 0.05)),
+      value: stock.currentPrice * (1 + (Math.random() * 0.1 - 0.05)),
       signal: randomSignal(),
       description: '50-day Simple Moving Average shows the average closing price over the last 50 days.'
     },
     {
       name: 'EMA (20)',
-      value: stock.price * (1 + (Math.random() * 0.08 - 0.04)),
+      value: stock.currentPrice * (1 + (Math.random() * 0.08 - 0.04)),
       signal: randomSignal(),
       description: '20-day Exponential Moving Average gives more weight to recent prices.'
     },
     {
       name: 'Bollinger Bands',
-      value: stock.price * (1 + (Math.random() * 0.06 - 0.03)),
+      value: stock.currentPrice * (1 + (Math.random() * 0.06 - 0.03)),
       signal: randomSignal(),
       description: 'Bollinger Bands consist of a middle band with two outer bands that help measure volatility.'
     },
@@ -262,19 +277,19 @@ export const generateStockPredictions = (symbol: string): StockPrediction[] => {
   return [
     {
       timeframe: '1 Day',
-      predictedPrice: stock.price * (1 + (Math.random() * 0.04 - 0.02)),
+      predictedPrice: stock.currentPrice * (1 + (Math.random() * 0.04 - 0.02)),
       confidence: Math.floor(Math.random() * 30) + 60,
       direction: randomDirection()
     },
     {
       timeframe: '1 Week',
-      predictedPrice: stock.price * (1 + (Math.random() * 0.08 - 0.03)),
+      predictedPrice: stock.currentPrice * (1 + (Math.random() * 0.08 - 0.03)),
       confidence: Math.floor(Math.random() * 30) + 50,
       direction: randomDirection()
     },
     {
       timeframe: '1 Month',
-      predictedPrice: stock.price * (1 + (Math.random() * 0.15 - 0.05)),
+      predictedPrice: stock.currentPrice * (1 + (Math.random() * 0.15 - 0.05)),
       confidence: Math.floor(Math.random() * 30) + 40,
       direction: randomDirection()
     }

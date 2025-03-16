@@ -6,6 +6,7 @@ export interface StockData {
   changePercent: number;
   volume: number;
   historicalData: HistoricalData[];
+  marketCap?: number;
 }
 
 export interface HistoricalData {
@@ -127,7 +128,7 @@ export interface IndicatorOption {
 export interface StockChartProps {
   data: HistoricalData[];
   symbol: string;
-  timeframe?: string;
+  timeframe: string;
   onTimeframeChange?: (timeframe: string) => void;
 }
 
