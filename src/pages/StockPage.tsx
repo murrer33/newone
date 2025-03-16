@@ -13,7 +13,7 @@ import PredictionChart from '../components/PredictionChart';
 import KeyStatistics from '../components/KeyStatistics';
 import CompanyProfile from '../components/CompanyProfile';
 import { fetchHistoricalData } from '../services/finnhub';
-import { HistoricalData } from '../types';
+import { HistoricalData, StockPrediction } from '../types';
 import {
   generateTechnicalIndicators,
   generateStockPredictions,
@@ -25,55 +25,31 @@ const StockPage: React.FC = () => {
   const { symbol } = useParams<{ symbol: string }>();
   const { nasdaqStocks, bistStocks, loading, error } = useStocks();
   const allStocks = [...nasdaqStocks, ...bistStocks];
-  const [timeframe, setTimeframe] = useState<string>('1D');
   const [historicalData, setHistoricalData] = useState<HistoricalData[]>([]);
-  const [historicalDataError, setHistoricalDataError] = useState<string | null>(null);
+  const [predictions, setPredictions] = useState<StockPrediction[]>([]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!symbol) return;
-
-      try {
-        const now = Math.floor(Date.now() / 1000);
-        let from: number;
-
-        switch (timeframe) {
-          case '1D':
-            from = now - 24 * 60 * 60;
-            break;
-          case '5D':
-            from = now - 5 * 24 * 60 * 60;
-            break;
-          case '1W':
-            from = now - 7 * 24 * 60 * 60;
-            break;
-          case '1M':
-            from = now - 30 * 24 * 60 * 60;
-            break;
-          case '6M':
-            from = now - 180 * 24 * 60 * 60;
-            break;
-          case '1Y':
-            from = now - 365 * 24 * 60 * 60;
-            break;
-          case '5Y':
-            from = now - 5 * 365 * 24 * 60 * 60;
-            break;
-          default:
-            from = now - 30 * 24 * 60 * 60; // Default to 1 month
+    if (symbol) {
+      const fetchData = async () => {
+        try {
+          const now = Math.floor(Date.now() / 1000);
+          const from = now - 30 * 24 * 60 * 60; // Default to 1 month
+          const data = await fetchHistoricalData(symbol, from, now);
+          setHistoricalData(data);
+        } catch (error) {
+          console.error('Error fetching historical data:', error);
         }
+      };
+      fetchData();
+    }
+  }, [symbol]);
 
-        const data = await fetchHistoricalData(symbol, from, now);
-        setHistoricalData(data);
-        setHistoricalDataError(null);
-      } catch (err) {
-        console.error('Failed to fetch historical data:', err);
-        setHistoricalDataError('Failed to fetch historical data');
-      }
-    };
-
-    fetchData();
-  }, [symbol, timeframe]);
+  useEffect(() => {
+    if (symbol) {
+      const initialPredictions = generateStockPredictions(symbol);
+      setPredictions(initialPredictions);
+    }
+  }, [symbol]);
 
   if (!symbol) return <div>Stock symbol not provided</div>;
   if (loading) return <div>Loading...</div>;
@@ -103,7 +79,6 @@ const StockPage: React.FC = () => {
 
   // Mock data for other components (since live data only has price)
   const technicalIndicators = generateTechnicalIndicators(symbol);
-  const predictions = generateStockPredictions(symbol);
   const sentimentData = generateSocialSentiment(symbol);
   const newsData = generateStockNews(symbol);
   const mockStats = {
@@ -200,7 +175,9 @@ const StockPage: React.FC = () => {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <StockChart data={historicalData} timeframe={timeframe} onTimeframeChange={setTimeframe} />
+          <StockChart 
+            data={historicalData} 
+          />
           <KeyStatistics stats={mockKeyStats} />
           <div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Technical Analysis</h2>
@@ -213,8 +190,8 @@ const StockPage: React.FC = () => {
           <NewsAnalysis 
             news={newsData.map(item => ({
               headline: item.title,
-              summary: item.title, // Using title as summary since we don't have a summary in NewsItem
-              datetime: item.time,
+              summary: item.title,
+              datetime: new Date(item.time).getTime() / 1000,
               source: item.source,
               url: item.url,
               sentiment: item.sentiment,
@@ -225,7 +202,11 @@ const StockPage: React.FC = () => {
         </div>
         <div className="space-y-6">
           <SentimentAnalysisCard data={sentimentData} />
-          <PredictionChart historicalData={historicalData} predictions={predictions} />
+          <PredictionChart 
+            historicalData={historicalData} 
+            predictions={predictions}
+            setPredictions={setPredictions}
+          />
         </div>
       </div>
     </div>

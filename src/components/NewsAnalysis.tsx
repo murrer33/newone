@@ -1,15 +1,6 @@
 import React from 'react';
-import { ArrowUp, ArrowDown, Minus } from 'lucide-react'; // Import icons from lucide-react
-
-interface NewsArticle {
-  headline: string;
-  summary: string;
-  url: string;
-  image?: string;
-  source: string;
-  datetime: number;
-  impact: 'high-positive' | 'positive' | 'neutral' | 'negative' | 'high-negative';
-}
+import { ArrowUp, Minus } from 'lucide-react'; // Import icons from lucide-react
+import { NewsArticle } from '../types';
 
 interface NewsAnalysisProps {
   news: NewsArticle[];
@@ -17,41 +8,29 @@ interface NewsAnalysisProps {
 
 const NewsAnalysis: React.FC<NewsAnalysisProps> = ({ news }) => {
   // Function to get impact details (label, color, icon)
-  const getImpactDetails = (impact: string) => {
+  const getImpactDetails = (impact: 'high' | 'medium' | 'low') => {
     switch (impact) {
-      case 'high-positive':
+      case 'high':
         return {
-          label: 'High Positive Impact',
+          label: 'High Impact',
           color: 'bg-green-100 text-green-800',
           icon: <ArrowUp className="w-4 h-4 text-green-500" />,
         };
-      case 'positive':
+      case 'medium':
         return {
-          label: 'Positive Impact',
-          color: 'bg-green-50 text-green-700',
-          icon: <ArrowUp className="w-4 h-4 text-green-400" />,
+          label: 'Medium Impact',
+          color: 'bg-yellow-50 text-yellow-700',
+          icon: <Minus className="w-4 h-4 text-yellow-500" />,
         };
-      case 'neutral':
+      case 'low':
         return {
-          label: 'Neutral Impact',
+          label: 'Low Impact',
           color: 'bg-gray-100 text-gray-800',
           icon: <Minus className="w-4 h-4 text-gray-500" />,
         };
-      case 'negative':
-        return {
-          label: 'Negative Impact',
-          color: 'bg-red-50 text-red-700',
-          icon: <ArrowDown className="w-4 h-4 text-red-400" />,
-        };
-      case 'high-negative':
-        return {
-          label: 'High Negative Impact',
-          color: 'bg-red-100 text-red-800',
-          icon: <ArrowDown className="w-4 h-4 text-red-500" />,
-        };
       default:
         return {
-          label: 'Neutral Impact',
+          label: 'Medium Impact',
           color: 'bg-gray-100 text-gray-800',
           icon: <Minus className="w-4 h-4 text-gray-500" />,
         };

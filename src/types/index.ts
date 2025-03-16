@@ -106,10 +106,12 @@ export interface NewsItem {
 export interface NewsArticle {
   headline: string;
   summary: string;
-  datetime: string;
+  datetime: number;
   source: string;
   url: string;
+  image?: string;
   sentiment: 'positive' | 'negative' | 'neutral';
+  impact: 'high' | 'medium' | 'low';
 }
 
 export interface SentimentAnalysis {
@@ -127,8 +129,7 @@ export interface IndicatorOption {
 
 export interface StockChartProps {
   data: HistoricalData[];
-  symbol: string;
-  timeframe: string;
+  timeframe?: string;
   onTimeframeChange?: (timeframe: string) => void;
 }
 

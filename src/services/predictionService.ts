@@ -1,6 +1,6 @@
 import { HistoricalData } from '../types';
 
-interface Prediction {
+export interface Prediction {
   date: string;
   value: number;
   lower_bound: number;

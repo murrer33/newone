@@ -201,7 +201,9 @@ const StockComparison: React.FC = () => {
         </div>
         {selectedStocks.length > 0 ? (
           <div className="h-80">
-            <Line data={chartConfig?.chartData} options={chartConfig?.options} />
+            {chartConfig && (
+              <Line data={chartConfig.chartData} options={chartConfig.options} />
+            )}
           </div>
         ) : (
           <div className="h-80 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg">

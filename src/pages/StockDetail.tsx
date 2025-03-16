@@ -8,6 +8,7 @@ import PredictionCard from '../components/PredictionCard';
 import SentimentAnalysisCard from '../components/SentimentAnalysisCard';
 import NewsAnalysis from '../components/NewsAnalysis';
 import PredictionChart from '../components/PredictionChart';
+import { StockPrediction } from '../types';
 import {
   generateHistoricalData,
   generateTechnicalIndicators,
@@ -20,7 +21,7 @@ const StockDetail: React.FC = () => {
   const { symbol } = useParams<{ symbol: string }>();
   const { nasdaqStocks, bistStocks, loading, error } = useStocks();
   const allStocks = [...nasdaqStocks, ...bistStocks];
-  const [timeframe, setTimeframe] = React.useState<'1D' | '1W' | '1M' | '3M' | '1Y' | 'ALL'>('1M');
+  const [predictions, setPredictions] = React.useState<StockPrediction[]>([]);
 
   if (!symbol) return <div>Stock symbol not provided</div>;
   if (loading) return <div>Loading...</div>;
@@ -43,7 +44,10 @@ const StockDetail: React.FC = () => {
 
   const historicalData = generateHistoricalData(symbol, 30);
   const technicalIndicators = generateTechnicalIndicators(symbol);
-  const predictions = generateStockPredictions(symbol);
+  const initialPredictions = generateStockPredictions(symbol);
+  React.useEffect(() => {
+    setPredictions(initialPredictions);
+  }, [symbol]);
   const sentimentData = generateSocialSentiment(symbol);
   const newsData = generateStockNews(symbol);
 
@@ -93,7 +97,11 @@ const StockDetail: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <StockChart data={historicalData} />
-          <PredictionChart historicalData={historicalData} predictions={predictions} />
+          <PredictionChart 
+            historicalData={historicalData} 
+            predictions={predictions} 
+            setPredictions={setPredictions}
+          />
           <div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
               <BarChart3 className="h-5 w-5 text-blue-500 mr-2" />
@@ -109,7 +117,7 @@ const StockDetail: React.FC = () => {
             news={newsData.map(item => ({
               headline: item.title,
               summary: item.title, // Using title as summary since we don't have a summary in NewsItem
-              datetime: item.time,
+              datetime: new Date(item.time).getTime() / 1000,
               source: item.source,
               url: item.url,
               sentiment: item.sentiment,

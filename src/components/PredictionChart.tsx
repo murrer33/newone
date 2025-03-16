@@ -14,6 +14,7 @@ import { Line } from 'react-chartjs-2';
 import { HistoricalData, StockPrediction } from '../types';
 import { getPredictions } from '../services/predictionService';
 import { AlertTriangle } from 'lucide-react';
+import { Prediction } from '../services/predictionService';
 
 ChartJS.register(
   CategoryScale,
@@ -40,12 +41,27 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const convertPredictionToStockPrediction = (prediction: Prediction): StockPrediction => {
+    const predictedPrice = prediction.value;
+    const confidence = prediction.confidence;
+    const direction = predictedPrice > historicalData[historicalData.length - 1].close ? 'up' : 
+                      predictedPrice < historicalData[historicalData.length - 1].close ? 'down' : 
+                      'sideways';
+    
+    return {
+      timeframe: prediction.date,
+      predictedPrice,
+      confidence,
+      direction
+    };
+  };
+
   useEffect(() => {
     const loadPredictions = async () => {
       try {
         setIsLoading(true);
         const result = await getPredictions(historicalData);
-        setPredictions(result);
+        setPredictions(result.map(convertPredictionToStockPrediction));
       } catch (err) {
         setError('Failed to load predictions');
         console.error(err);
