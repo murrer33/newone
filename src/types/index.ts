@@ -1,11 +1,12 @@
 export interface StockData {
   symbol: string;
   name: string;
-  price: number;
+  currentPrice: number;
   change: number;
   changePercent: number;
   volume: number;
-  marketCap: number;
+  historicalData: HistoricalData[];
+  technicalIndicators: TechnicalIndicator[];
 }
 
 export interface HistoricalData {
@@ -17,11 +18,63 @@ export interface HistoricalData {
   volume: number;
 }
 
+export interface ChartData {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+    borderColor: string;
+    backgroundColor?: string;
+    fill?: boolean;
+    tension?: number;
+    borderWidth?: number;
+    pointRadius?: number;
+    pointHoverRadius?: number;
+  }[];
+}
+
+export interface ChartOptions {
+  responsive: boolean;
+  maintainAspectRatio: boolean;
+  interaction: {
+    mode: 'index' | 'nearest' | 'x' | 'y';
+    intersect: boolean;
+  };
+  scales?: {
+    x?: {
+      display: boolean;
+      grid?: {
+        display: boolean;
+      };
+    };
+    y?: {
+      display: boolean;
+      grid?: {
+        display: boolean;
+      };
+      min?: number;
+      max?: number;
+    };
+  };
+  plugins?: {
+    legend?: {
+      display: boolean;
+      position?: 'top' | 'bottom' | 'left' | 'right';
+    };
+    tooltip?: {
+      mode: 'index' | 'nearest' | 'x' | 'y';
+      intersect: boolean;
+      callbacks?: {
+        label?: (context: any) => string;
+      };
+    };
+  };
+}
+
 export interface TechnicalIndicator {
   name: string;
   value: number;
-  signal: 'buy' | 'sell' | 'neutral';
-  description: string;
+  signal?: 'buy' | 'sell' | 'neutral';
 }
 
 export interface StockPrediction {
