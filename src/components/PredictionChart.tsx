@@ -11,7 +11,7 @@ import {
   Filler
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { HistoricalData } from '../types';
+import { HistoricalData, StockPrediction } from '../types';
 import { getPredictions } from '../services/predictionService';
 import { AlertTriangle } from 'lucide-react';
 
@@ -28,6 +28,7 @@ ChartJS.register(
 
 interface PredictionChartProps {
   historicalData: HistoricalData[];
+  predictions: StockPrediction[];
 }
 
 interface Prediction {
@@ -38,8 +39,7 @@ interface Prediction {
   confidence: number;
 }
 
-const PredictionChart: React.FC<PredictionChartProps> = ({ historicalData }) => {
-  const [predictions, setPredictions] = useState<Prediction[]>([]);
+const PredictionChart: React.FC<PredictionChartProps> = ({ historicalData, predictions }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,7 +48,15 @@ const PredictionChart: React.FC<PredictionChartProps> = ({ historicalData }) => 
       try {
         setIsLoading(true);
         const result = await getPredictions(historicalData);
-        setPredictions(result);
+        // Convert StockPrediction to Prediction format
+        const formattedPredictions = result.map(pred => ({
+          date: pred.timeframe,
+          value: pred.predictedPrice,
+          lower_bound: pred.predictedPrice * (1 - pred.confidence / 100),
+          upper_bound: pred.predictedPrice * (1 + pred.confidence / 100),
+          confidence: pred.confidence
+        }));
+        setPredictions(formattedPredictions);
       } catch (err) {
         setError('Failed to load predictions');
         console.error(err);

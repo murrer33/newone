@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Globe, Search, ArrowDownUp } from 'lucide-react';
+import { Globe, Search } from 'lucide-react';
 import { useStocks } from '../context/StockContext';
 import StockCard from '../components/StockCard';
+import { StockData } from '../types';
 
 const PopularStocks: React.FC = () => {
   const { nasdaqStocks, loading, error } = useStocks(); // Assuming popular = NASDAQ
@@ -22,18 +23,18 @@ const PopularStocks: React.FC = () => {
   if (error) return <div>Error: {error}</div>;
 
   const filteredStocks = nasdaqStocks.filter(
-    (stock) =>
+    (stock: StockData) =>
       stock.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
       stock.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const sortedStocks = [...filteredStocks].sort((a, b) => {
+  const sortedStocks = [...filteredStocks].sort((a: StockData, b: StockData) => {
     if (sortBy === 'symbol') {
       return sortDirection === 'asc'
         ? a.symbol.localeCompare(b.symbol)
         : b.symbol.localeCompare(a.symbol);
     } else {
-      return sortDirection === 'asc' ? a.price - b.price : b.price - a.price;
+      return sortDirection === 'asc' ? a.currentPrice - b.currentPrice : b.currentPrice - a.currentPrice;
     }
   });
 
@@ -82,7 +83,7 @@ const PopularStocks: React.FC = () => {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {sortedStocks.map((stock) => (
+        {sortedStocks.map((stock: StockData) => (
           <StockCard key={stock.symbol} stock={stock} />
         ))}
       </div>

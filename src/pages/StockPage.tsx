@@ -217,7 +217,8 @@ const StockPage: React.FC = () => {
               datetime: item.time,
               source: item.source,
               url: item.url,
-              sentiment: item.sentiment
+              sentiment: item.sentiment,
+              impact: item.impact
             }))} 
           />
           <CompanyProfile profile={mockCompanyProfile} />

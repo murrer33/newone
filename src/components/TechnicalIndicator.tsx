@@ -1,6 +1,6 @@
 import React from 'react';
 import { TechnicalIndicator as TechnicalIndicatorType } from '../types';
-import { TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown } from 'lucide-react';
+import { Minus, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface TechnicalIndicatorProps {
   indicator: TechnicalIndicatorType;

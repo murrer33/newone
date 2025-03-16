@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart3, Search, Menu, X, TrendingUp, Scale, LineChart } from 'lucide-react';
+import { BarChart3, Search, Menu, X } from 'lucide-react';
 
 interface NavbarProps {
   onLoginClick: () => void;

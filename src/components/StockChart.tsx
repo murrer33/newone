@@ -4,9 +4,11 @@ import { HistoricalData } from '../types';
 interface StockChartProps {
   data: HistoricalData[];
   symbol: string;
+  timeframe: string;
+  onTimeframeChange?: (timeframe: string) => void;
 }
 
-const StockChart: React.FC<StockChartProps> = ({ data, symbol }) => {
+const StockChart: React.FC<StockChartProps> = ({ data, symbol, timeframe, onTimeframeChange }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {

@@ -58,7 +58,7 @@ const StockDetail: React.FC = () => {
             </div>
             <div className="flex items-center mt-2">
               <span className="text-3xl font-bold text-gray-900 dark:text-white mr-3">
-                ${stock.price.toFixed(2)}
+                ${stock.currentPrice.toFixed(2)}
               </span>
             </div>
           </div>
@@ -76,8 +76,8 @@ const StockDetail: React.FC = () => {
         {[
           { label: 'Market Cap', value: '$2.5T', icon: <DollarSign className="h-5 w-5" /> },
           { label: 'Volume', value: '85M', icon: <Activity className="h-5 w-5" /> },
-          { label: '52W High', value: `$${(stock.price * 1.2).toFixed(2)}`, icon: <TrendingUp className="h-5 w-5" /> },
-          { label: '52W Low', value: `$${(stock.price * 0.8).toFixed(2)}`, icon: <TrendingDown className="h-5 w-5" /> },
+          { label: '52W High', value: `$${(stock.currentPrice * 1.2).toFixed(2)}`, icon: <TrendingUp className="h-5 w-5" /> },
+          { label: '52W Low', value: `$${(stock.currentPrice * 0.8).toFixed(2)}`, icon: <TrendingDown className="h-5 w-5" /> },
         ].map((stat, index) => (
           <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
             <div className="flex items-center">
@@ -112,7 +112,8 @@ const StockDetail: React.FC = () => {
               datetime: item.time,
               source: item.source,
               url: item.url,
-              sentiment: item.sentiment
+              sentiment: item.sentiment,
+              impact: item.impact
             }))} 
           />
         </div>
