@@ -1,15 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, TrendingDown, DollarSign, MessageSquare, Clock } from 'lucide-react';
-import MarketOverview from '../components/MarketOverview';
-import NewsAnalysis from '../components/NewsAnalysis';
 import { useStocks } from '../context/StockContext';
-import { useNews } from '../hooks/useNews';
 import StockChart from '../components/StockChart';
-import { HistoricalData, StockData, NewsArticle } from '../types';
+import { HistoricalData, StockData } from '../types';
 
 const Dashboard: React.FC = () => {
   const { nasdaqStocks, loading: stocksLoading, error: stocksError } = useStocks();
-  const { news, loading: newsLoading, error: newsError } = useNews('AAPL');
   const [isMarketOpen, setIsMarketOpen] = useState(true);
   const [lastUpdateTime, setLastUpdateTime] = useState<string>('');
   const [lastKnownPrice, setLastKnownPrice] = useState<number | null>(null);
@@ -56,67 +51,10 @@ const Dashboard: React.FC = () => {
     }
   }, [isMarketOpen, nasdaqStocks]);
 
-  // Market summary stats
-  const marketStats = [
-    {
-      name: 'S&P 500',
-      value: '4,927.11',
-      change: '+0.41%',
-      isPositive: true,
-      icon: <BarChart3 className="h-6 w-6" />,
-    },
-    {
-      name: 'Dow Jones',
-      value: '38,239.98',
-      change: '+0.56%',
-      isPositive: true,
-      icon: <TrendingUp className="h-6 w-6" />,
-    },
-    {
-      name: 'Nasdaq',
-      value: '15,927.90',
-      change: '-0.27%',
-      isPositive: false,
-      icon: <TrendingDown className="h-6 w-6" />,
-    },
-    {
-      name: 'Bitcoin',
-      value: '$63,245.78',
-      change: '+2.14%',
-      isPositive: true,
-      icon: <DollarSign className="h-6 w-6" />,
-    },
-  ];
-
-  // Top gainers and losers
-  const topGainers = nasdaqStocks
-    .map((stock: StockData) => ({
-      ...stock,
-      changePercent: ((stock.currentPrice - 100) / 100) * 100,
-    }))
-    .sort((a: StockData, b: StockData) => b.changePercent - a.changePercent)
-    .slice(0, 2);
-
-  const topLosers = nasdaqStocks
-    .map((stock: StockData) => ({
-      ...stock,
-      changePercent: ((stock.currentPrice - 100) / 100) * 100,
-    }))
-    .sort((a: StockData, b: StockData) => a.changePercent - b.changePercent)
-    .slice(0, 1);
-
-  // Social media sentiment summary
-  const sentimentSummary = {
-    positive: 42,
-    negative: 28,
-    neutral: 30,
-  };
-
   // Sample data - replace with actual data from your API
   const sampleData: HistoricalData[] = [
     { date: '2024-01-01', open: 100, high: 105, low: 98, close: 102, volume: 1000000 },
     { date: '2024-01-02', open: 102, high: 108, low: 100, close: 105, volume: 1200000 },
-    // Add more sample data as needed
   ];
 
   if (stocksLoading) return <p>Loading stock data...</p>;
@@ -140,7 +78,6 @@ const Dashboard: React.FC = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Stock Information</h2>
             <div className="flex items-center space-x-2">
-              <Clock className="h-4 w-4 text-gray-500" />
               <span className="text-sm text-gray-500">Last updated: {lastUpdateTime}</span>
             </div>
           </div>

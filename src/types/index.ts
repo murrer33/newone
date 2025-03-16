@@ -6,7 +6,6 @@ export interface StockData {
   changePercent: number;
   volume: number;
   historicalData: HistoricalData[];
-  technicalIndicators: TechnicalIndicator[];
 }
 
 export interface HistoricalData {
@@ -75,6 +74,7 @@ export interface TechnicalIndicator {
   name: string;
   value: number;
   signal?: 'buy' | 'sell' | 'neutral';
+  description?: string;
 }
 
 export interface StockPrediction {
@@ -102,8 +102,36 @@ export interface NewsItem {
   impact: 'high' | 'medium' | 'low';
 }
 
+export interface NewsArticle {
+  headline: string;
+  summary: string;
+  datetime: string;
+  source: string;
+  url: string;
+  sentiment: 'positive' | 'negative' | 'neutral';
+}
+
 export interface SentimentAnalysis {
   overall: number; // -100 to 100
   breakdown: SocialMediaSentiment[];
   trending: string[];
+}
+
+export interface IndicatorOption {
+  enabled: boolean;
+  period: number;
+  color: string;
+  stdDev?: number;
+}
+
+export interface StockChartProps {
+  data: HistoricalData[];
+  symbol: string;
+  timeframe?: string;
+  onTimeframeChange?: (timeframe: string) => void;
+}
+
+export interface PredictionChartProps {
+  historicalData: HistoricalData[];
+  predictions: StockPrediction[];
 }
