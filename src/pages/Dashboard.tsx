@@ -2,20 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, TrendingDown, DollarSign, MessageSquare, Clock } from 'lucide-react';
 import MarketOverview from '../components/MarketOverview';
 import NewsAnalysis from '../components/NewsAnalysis';
-import { useStocks } from '../context/StockContext'; // Import the useStocks hook
-import { useNews } from '../hooks/useNews'; // For real news
+import { useStocks } from '../context/StockContext';
+import { useNews } from '../hooks/useNews';
 import StockChart from '../components/StockChart';
-import { HistoricalData } from '../types';
+import { HistoricalData, StockData, NewsArticle } from '../types';
 
 const Dashboard: React.FC = () => {
-  // Use the global stock context
-  const { nasdaqStocks, bistStocks, loading: stocksLoading, error: stocksError } = useStocks();
-
-  // Fetch real news data
+  const { nasdaqStocks, loading: stocksLoading, error: stocksError } = useStocks();
   const { news, loading: newsLoading, error: newsError } = useNews('AAPL');
-
   const [isMarketOpen, setIsMarketOpen] = useState(true);
   const [lastUpdateTime, setLastUpdateTime] = useState<string>('');
+  const [lastKnownPrice, setLastKnownPrice] = useState<number | null>(null);
 
   // Function to check if market is open
   const checkMarketStatus = () => {
@@ -49,6 +46,16 @@ const Dashboard: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Update last known price when market closes
+  useEffect(() => {
+    if (!isMarketOpen && nasdaqStocks.length > 0) {
+      const aaplStock = nasdaqStocks.find((stock: StockData) => stock.symbol === 'AAPL');
+      if (aaplStock) {
+        setLastKnownPrice(aaplStock.currentPrice);
+      }
+    }
+  }, [isMarketOpen, nasdaqStocks]);
+
   // Market summary stats
   const marketStats = [
     {
@@ -81,22 +88,22 @@ const Dashboard: React.FC = () => {
     },
   ];
 
-  // Top gainers and losers (updated with real-time prices)
+  // Top gainers and losers
   const topGainers = nasdaqStocks
-    .map((stock) => ({
+    .map((stock: StockData) => ({
       ...stock,
-      changePercent: ((stock.price - 100) / 100) * 100, // Example calculation for changePercent
+      changePercent: ((stock.currentPrice - 100) / 100) * 100,
     }))
-    .sort((a, b) => b.changePercent - a.changePercent)
-    .slice(0, 2); // Top 2 gainers
+    .sort((a: StockData, b: StockData) => b.changePercent - a.changePercent)
+    .slice(0, 2);
 
   const topLosers = nasdaqStocks
-    .map((stock) => ({
+    .map((stock: StockData) => ({
       ...stock,
-      changePercent: ((stock.price - 100) / 100) * 100, // Example calculation for changePercent
+      changePercent: ((stock.currentPrice - 100) / 100) * 100,
     }))
-    .sort((a, b) => a.changePercent - b.changePercent)
-    .slice(0, 1); // Top 1 loser
+    .sort((a: StockData, b: StockData) => a.changePercent - b.changePercent)
+    .slice(0, 1);
 
   // Social media sentiment summary
   const sentimentSummary = {
@@ -151,16 +158,25 @@ const Dashboard: React.FC = () => {
               </span>
             </div>
             {!isMarketOpen && (
-              <p className="text-sm text-gray-500 mt-1">
-                Showing last known prices from previous trading day
-              </p>
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">
+                  Showing last known prices from previous trading day
+                </p>
+                {lastKnownPrice && (
+                  <p className="text-sm font-medium text-gray-700 mt-1">
+                    Last known price: ${lastKnownPrice.toFixed(2)}
+                  </p>
+                )}
+              </div>
             )}
           </div>
 
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-medium text-gray-500">Current Price</h3>
-              <p className="text-2xl font-bold text-gray-900">$150.25</p>
+              <p className="text-2xl font-bold text-gray-900">
+                ${isMarketOpen ? '150.25' : lastKnownPrice?.toFixed(2) || '150.25'}
+              </p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500">Change</h3>
