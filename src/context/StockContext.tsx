@@ -1,21 +1,21 @@
 // StockContext.tsx
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useLivePrice } from "../hooks/useLivePrice";
-import { StockData } from "../types";
+import { Stock } from "../types";
 
 const StockContext = createContext<any>(null);
 
 export const StockProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [nasdaqStocks, setNasdaqStocks] = useState<StockData[]>([
-    { symbol: "AAPL", name: "Apple Inc.", currentPrice: 150, change: 0, changePercent: 0, volume: 0, historicalData: [] },
-    { symbol: "MSFT", name: "Microsoft Corporation", currentPrice: 300, change: 0, changePercent: 0, volume: 0, historicalData: [] },
-    { symbol: "GOOGL", name: "Alphabet Inc.", currentPrice: 2800, change: 0, changePercent: 0, volume: 0, historicalData: [] },
+  const [nasdaqStocks, setNasdaqStocks] = useState<Stock[]>([
+    { symbol: "AAPL", name: "Apple Inc.", price: 150 },
+    { symbol: "MSFT", name: "Microsoft Corporation", price: 300 },
+    { symbol: "GOOGL", name: "Alphabet Inc.", price: 2800 },
   ]);
-  const [bistStocks, setBistStocks] = useState<StockData[]>([
-    { symbol: "THYAO", name: "Turkish Airlines", currentPrice: 135, change: 0, changePercent: 0, volume: 0, historicalData: [] },
-    { symbol: "GARAN", name: "Garanti Bank", currentPrice: 45, change: 0, changePercent: 0, volume: 0, historicalData: [] },
+  const [bistStocks, setBistStocks] = useState<Stock[]>([
+    { symbol: "THYAO", name: "Turkish Airlines", price: 135 },
+    { symbol: "GARAN", name: "Garanti Bank", price: 45 },
   ]);
   const symbols = [...nasdaqStocks, ...bistStocks].map((stock) => stock.symbol);
   const { prices, loading, error } = useLivePrice(symbols);
@@ -25,13 +25,13 @@ export const StockProvider: React.FC<{ children: React.ReactNode }> = ({
       setNasdaqStocks((prev) =>
         prev.map((stock) => ({
           ...stock,
-          currentPrice: prices[stock.symbol] || stock.currentPrice,
+          price: prices[stock.symbol] || stock.price,
         })),
       );
       setBistStocks((prev) =>
         prev.map((stock) => ({
           ...stock,
-          currentPrice: prices[stock.symbol] || stock.currentPrice,
+          price: prices[stock.symbol] || stock.price,
         })),
       );
     }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { TechnicalIndicator as TechnicalIndicatorType } from '../types';
-import { Minus, ArrowUp, ArrowDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 interface TechnicalIndicatorProps {
   indicator: TechnicalIndicatorType;
@@ -9,25 +9,25 @@ interface TechnicalIndicatorProps {
 const TechnicalIndicator: React.FC<TechnicalIndicatorProps> = ({ indicator }) => {
   const { name, value, signal, description } = indicator;
 
-  const getSignalColor = (signal: 'buy' | 'sell' | 'neutral' | undefined): string => {
-    switch (signal || 'neutral') {
+  const getSignalColor = (signal: 'buy' | 'sell' | 'neutral') => {
+    switch (signal) {
       case 'buy':
         return 'text-green-500';
       case 'sell':
         return 'text-red-500';
-      default:
-        return 'text-yellow-500';
+      case 'neutral':
+        return 'text-gray-500';
     }
   };
 
-  const getSignalIcon = (signal: 'buy' | 'sell' | 'neutral' | undefined): JSX.Element => {
-    switch (signal || 'neutral') {
+  const getSignalIcon = (signal: 'buy' | 'sell' | 'neutral') => {
+    switch (signal) {
       case 'buy':
-        return <ArrowUp className="w-5 h-5 text-green-500" />;
+        return <TrendingUp size={16} />;
       case 'sell':
-        return <ArrowDown className="w-5 h-5 text-red-500" />;
-      default:
-        return <Minus className="w-5 h-5 text-yellow-500" />;
+        return <TrendingDown size={16} />;
+      case 'neutral':
+        return <Minus size={16} />;
     }
   };
 
@@ -52,7 +52,7 @@ const TechnicalIndicator: React.FC<TechnicalIndicatorProps> = ({ indicator }) =>
         </div>
         <div className={`flex items-center ${getSignalColor(signal)}`}>
           {getSignalIcon(signal)}
-          <span className="ml-1 font-medium capitalize">{signal || 'neutral'}</span>
+          <span className="ml-1 font-medium capitalize">{signal}</span>
         </div>
       </div>
       <div className="mt-2">

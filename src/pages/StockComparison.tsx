@@ -10,11 +10,9 @@ import {
   Title,
   Tooltip,
   Legend,
-  ChartData,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { generateHistoricalData } from '../utils/mockData'; // Keep for chart data
-import { StockData } from '../types';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -22,20 +20,20 @@ const StockComparison: React.FC = () => {
   const { nasdaqStocks, bistStocks, loading, error } = useStocks();
   const allStocks = [...nasdaqStocks, ...bistStocks];
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStocks, setSelectedStocks] = useState<StockData[]>([]);
+  const [selectedStocks, setSelectedStocks] = useState<any[]>([]); // Adjust type if needed
   const [timeframe, setTimeframe] = useState<'1W' | '1M' | '3M' | '1Y'>('1M');
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
   const filteredStocks = allStocks.filter(
-    (stock: StockData) =>
-      !selectedStocks.some((s: StockData) => s.symbol === stock.symbol) &&
+    (stock) =>
+      !selectedStocks.some((s) => s.symbol === stock.symbol) &&
       (stock.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
         stock.name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const handleAddStock = (stock: StockData) => {
+  const handleAddStock = (stock: any) => {
     if (selectedStocks.length < 4) {
       setSelectedStocks([...selectedStocks, stock]);
       setSearchTerm('');
@@ -43,14 +41,14 @@ const StockComparison: React.FC = () => {
   };
 
   const handleRemoveStock = (symbol: string) => {
-    setSelectedStocks(selectedStocks.filter((stock: StockData) => stock.symbol !== symbol));
+    setSelectedStocks(selectedStocks.filter((stock) => stock.symbol !== symbol));
   };
 
   const generateComparisonChart = () => {
     if (selectedStocks.length === 0) return null;
     const days = timeframe === '1W' ? 7 : timeframe === '1M' ? 30 : timeframe === '3M' ? 90 : 365;
     const datasets = selectedStocks.map((stock, index) => {
-      const historicalData = generateHistoricalData(stock.symbol, days);
+      const historicalData = generateHistoricalData(stock.symbol, days); // Mock historical data
       const firstDayPrice = historicalData[0].close;
       const normalizedData = historicalData.map((day) => ({
         ...day,
@@ -73,7 +71,7 @@ const StockComparison: React.FC = () => {
         tension: 0.4,
       };
     });
-    const chartData: ChartData<'line'> = {
+    const chartData = {
       labels: generateHistoricalData(selectedStocks[0].symbol, days).map((day) => day.date),
       datasets,
     };
@@ -102,7 +100,7 @@ const StockComparison: React.FC = () => {
       },
       interaction: { mode: 'index' as const, intersect: false },
     };
-    return { chartData: chartData as ChartData<'line', (number | null)[], unknown>, options };
+    return { chartData, options };
   };
 
   const chartConfig = generateComparisonChart();
@@ -201,9 +199,7 @@ const StockComparison: React.FC = () => {
         </div>
         {selectedStocks.length > 0 ? (
           <div className="h-80">
-            {chartConfig && (
-              <Line data={chartConfig.chartData} options={chartConfig.options} />
-            )}
+            <Line data={chartConfig?.chartData} options={chartConfig?.options as any} />
           </div>
         ) : (
           <div className="h-80 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
@@ -246,7 +242,7 @@ const StockComparison: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    ${stock.currentPrice.toFixed(2)}
+                    ${stock.price.toFixed(2)}
                   </td>
                 </tr>
               ))}

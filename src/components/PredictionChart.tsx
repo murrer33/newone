@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Dispatch, SetStateAction } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -11,10 +11,9 @@ import {
   Filler
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { HistoricalData, StockPrediction } from '../types';
+import { HistoricalData } from '../types';
 import { getPredictions } from '../services/predictionService';
 import { AlertTriangle } from 'lucide-react';
-import { Prediction } from '../services/predictionService';
 
 ChartJS.register(
   CategoryScale,
@@ -29,39 +28,27 @@ ChartJS.register(
 
 interface PredictionChartProps {
   historicalData: HistoricalData[];
-  predictions: StockPrediction[];
-  setPredictions: Dispatch<SetStateAction<StockPrediction[]>>;
 }
 
-const PredictionChart: React.FC<PredictionChartProps> = ({ 
-  historicalData, 
-  predictions,
-  setPredictions 
-}) => {
+interface Prediction {
+  date: string;
+  value: number;
+  lower_bound: number;
+  upper_bound: number;
+  confidence: number;
+}
+
+const PredictionChart: React.FC<PredictionChartProps> = ({ historicalData }) => {
+  const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const convertPredictionToStockPrediction = (prediction: Prediction): StockPrediction => {
-    const predictedPrice = prediction.value;
-    const confidence = prediction.confidence;
-    const direction = predictedPrice > historicalData[historicalData.length - 1].close ? 'up' : 
-                      predictedPrice < historicalData[historicalData.length - 1].close ? 'down' : 
-                      'sideways';
-    
-    return {
-      timeframe: prediction.date,
-      predictedPrice,
-      confidence,
-      direction
-    };
-  };
 
   useEffect(() => {
     const loadPredictions = async () => {
       try {
         setIsLoading(true);
         const result = await getPredictions(historicalData);
-        setPredictions(result.map(convertPredictionToStockPrediction));
+        setPredictions(result);
       } catch (err) {
         setError('Failed to load predictions');
         console.error(err);
@@ -71,17 +58,17 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
     };
 
     loadPredictions();
-  }, [historicalData, setPredictions]);
+  }, [historicalData]);
 
   const chartData = {
     labels: [
-      ...historicalData.map((item: HistoricalData) => item.date),
-      ...predictions.map((item: StockPrediction) => item.timeframe)
+      ...historicalData.map(item => item.date),
+      ...predictions.map(item => item.date)
     ],
     datasets: [
       {
         label: 'Historical Price',
-        data: [...historicalData.map((item: HistoricalData) => item.close), ...Array(predictions.length).fill(null)],
+        data: [...historicalData.map(item => item.close), ...Array(predictions.length).fill(null)],
         borderColor: 'rgb(59, 130, 246)',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         borderWidth: 2,
@@ -90,7 +77,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
       },
       {
         label: 'Predicted Price',
-        data: [...Array(historicalData.length).fill(null), ...predictions.map((item: StockPrediction) => item.predictedPrice)],
+        data: [...Array(historicalData.length).fill(null), ...predictions.map(item => item.value)],
         borderColor: 'rgb(234, 88, 12)',
         backgroundColor: 'rgba(234, 88, 12, 0.1)',
         borderWidth: 2,
@@ -100,7 +87,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
       },
       {
         label: 'Confidence Interval',
-        data: [...Array(historicalData.length).fill(null), ...predictions.map(item => item.predictedPrice * (1 + item.confidence / 100))],
+        data: [...Array(historicalData.length).fill(null), ...predictions.map(item => item.upper_bound)],
         borderColor: 'rgba(234, 88, 12, 0.2)',
         backgroundColor: 'rgba(234, 88, 12, 0.1)',
         borderWidth: 1,
@@ -109,7 +96,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
       },
       {
         label: 'Confidence Interval',
-        data: [...Array(historicalData.length).fill(null), ...predictions.map(item => item.predictedPrice * (1 - item.confidence / 100))],
+        data: [...Array(historicalData.length).fill(null), ...predictions.map(item => item.lower_bound)],
         borderColor: 'rgba(234, 88, 12, 0.2)',
         backgroundColor: 'rgba(234, 88, 12, 0.1)',
         borderWidth: 1,
@@ -140,7 +127,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
               return [
                 `Predicted: $${context.raw.toFixed(2)}`,
                 `Confidence: ${prediction.confidence.toFixed(1)}%`,
-                `Range: $${(prediction.predictedPrice * (1 - prediction.confidence / 100)).toFixed(2)} - $${(prediction.predictedPrice * (1 + prediction.confidence / 100)).toFixed(2)}`
+                `Range: $${prediction.lower_bound.toFixed(2)} - $${prediction.upper_bound.toFixed(2)}`
               ];
             }
             return `${context.dataset.label}: $${context.raw?.toFixed(2) || 'N/A'}`;
@@ -213,7 +200,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
             >
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {prediction.timeframe}
+                  {new Date(prediction.date).toLocaleDateString()}
                 </span>
                 <span className={`text-sm font-medium ${
                   prediction.confidence > 80 ? 'text-green-500' :
@@ -223,10 +210,10 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
                 </span>
               </div>
               <div className="text-lg font-bold text-gray-900 dark:text-white">
-                ${prediction.predictedPrice.toFixed(2)}
+                ${prediction.value.toFixed(2)}
               </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                Range: ${(prediction.predictedPrice * (1 - prediction.confidence / 100)).toFixed(2)} - ${(prediction.predictedPrice * (1 + prediction.confidence / 100)).toFixed(2)}
+                Range: ${prediction.lower_bound.toFixed(2)} - ${prediction.upper_bound.toFixed(2)}
               </div>
             </div>
           ))}

@@ -8,10 +8,10 @@ interface StockCardProps {
 }
 
 const StockCard: React.FC<StockCardProps> = ({ stock }) => {
-  const { symbol, name, currentPrice, change, changePercent } = stock;
+  const { symbol, name, price, change, changePercent } = stock;
 
   // Ensure values are defined before using .toFixed()
-  const formattedPrice = currentPrice ? currentPrice.toFixed(2) : '0.00';
+  const formattedPrice = price ? price.toFixed(2) : '0.00';
   const formattedChange = change ? change.toFixed(2) : '0.00';
   const formattedChangePercent = changePercent ? changePercent.toFixed(2) : '0.00';
 

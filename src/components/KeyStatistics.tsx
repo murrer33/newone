@@ -1,5 +1,5 @@
 import React from 'react';
-import { DollarSign, TrendingUp, Users, Percent } from 'lucide-react';
+import { DollarSign, TrendingUp, Activity, Scale, Users, Percent } from 'lucide-react';
 
 interface KeyStatisticsProps {
   stats: {
