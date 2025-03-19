@@ -99,7 +99,7 @@ const Watchlist: React.FC = () => {
                     <div className="text-sm text-gray-900 dark:text-white">{stock.name}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    ${stock.price.toFixed(2)}
+                    ${stock.currentPrice.toFixed(2)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <div className={`flex items-center justify-end text-sm ${stock.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>

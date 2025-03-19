@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -16,8 +17,21 @@ export default defineConfig({
     outDir: 'dist', // Output directory for the build
     assetsInlineLimit: 4096, // Inline assets smaller than 4KB
     sourcemap: true, // Generate source maps for debugging
+    target: 'es2015', // Target older browsers for better compatibility
+    minify: 'terser', // Use terser for minification
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true
+    }
   },
   define: {
     'process.env': {}, // Define process.env for compatibility
+    'global': {}, // Define global for compatibility
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      'crypto': 'crypto-browserify',
+    },
   },
 });

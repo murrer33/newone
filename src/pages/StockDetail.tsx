@@ -8,6 +8,7 @@ import PredictionCard from '../components/PredictionCard';
 import SentimentAnalysisCard from '../components/SentimentAnalysisCard';
 import NewsAnalysis from '../components/NewsAnalysis';
 import PredictionChart from '../components/PredictionChart';
+import { StockPrediction } from '../types';
 import {
   generateHistoricalData,
   generateTechnicalIndicators,
@@ -20,7 +21,7 @@ const StockDetail: React.FC = () => {
   const { symbol } = useParams<{ symbol: string }>();
   const { nasdaqStocks, bistStocks, loading, error } = useStocks();
   const allStocks = [...nasdaqStocks, ...bistStocks];
-  const [timeframe, setTimeframe] = React.useState<'1D' | '1W' | '1M' | '3M' | '1Y' | 'ALL'>('1M');
+  const [predictions, setPredictions] = React.useState<StockPrediction[]>([]);
 
   if (!symbol) return <div>Stock symbol not provided</div>;
   if (loading) return <div>Loading...</div>;
@@ -43,7 +44,10 @@ const StockDetail: React.FC = () => {
 
   const historicalData = generateHistoricalData(symbol, 30);
   const technicalIndicators = generateTechnicalIndicators(symbol);
-  const predictions = generateStockPredictions(symbol);
+  const initialPredictions = generateStockPredictions(symbol);
+  React.useEffect(() => {
+    setPredictions(initialPredictions);
+  }, [symbol]);
   const sentimentData = generateSocialSentiment(symbol);
   const newsData = generateStockNews(symbol);
 
@@ -58,7 +62,7 @@ const StockDetail: React.FC = () => {
             </div>
             <div className="flex items-center mt-2">
               <span className="text-3xl font-bold text-gray-900 dark:text-white mr-3">
-                ${stock.price.toFixed(2)}
+                ${stock.currentPrice.toFixed(2)}
               </span>
             </div>
           </div>
@@ -76,8 +80,8 @@ const StockDetail: React.FC = () => {
         {[
           { label: 'Market Cap', value: '$2.5T', icon: <DollarSign className="h-5 w-5" /> },
           { label: 'Volume', value: '85M', icon: <Activity className="h-5 w-5" /> },
-          { label: '52W High', value: `$${(stock.price * 1.2).toFixed(2)}`, icon: <TrendingUp className="h-5 w-5" /> },
-          { label: '52W Low', value: `$${(stock.price * 0.8).toFixed(2)}`, icon: <TrendingDown className="h-5 w-5" /> },
+          { label: '52W High', value: `$${(stock.currentPrice * 1.2).toFixed(2)}`, icon: <TrendingUp className="h-5 w-5" /> },
+          { label: '52W Low', value: `$${(stock.currentPrice * 0.8).toFixed(2)}`, icon: <TrendingDown className="h-5 w-5" /> },
         ].map((stat, index) => (
           <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
             <div className="flex items-center">
@@ -92,8 +96,12 @@ const StockDetail: React.FC = () => {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <StockChart data={historicalData} timeframe={timeframe} />
-          <PredictionChart historicalData={historicalData} predictions={predictions} />
+          <StockChart data={historicalData} />
+          <PredictionChart 
+            historicalData={historicalData} 
+            predictions={predictions} 
+            setPredictions={setPredictions}
+          />
           <div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
               <BarChart3 className="h-5 w-5 text-blue-500 mr-2" />
@@ -105,7 +113,17 @@ const StockDetail: React.FC = () => {
               ))}
             </div>
           </div>
-          <NewsAnalysis news={newsData} />
+          <NewsAnalysis 
+            news={newsData.map(item => ({
+              headline: item.title,
+              summary: item.title, // Using title as summary since we don't have a summary in NewsItem
+              datetime: new Date(item.time).getTime() / 1000,
+              source: item.source,
+              url: item.url,
+              sentiment: item.sentiment,
+              impact: item.impact
+            }))} 
+          />
         </div>
         <div className="space-y-6">
           <SentimentAnalysisCard data={sentimentData} />
