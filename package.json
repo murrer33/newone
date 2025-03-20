@@ -10,15 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@headlessui/react": "^2.2.0",
-    "@heroicons/react": "^2.2.0",
     "@tanstack/react-query": "^5.28.4",
     "@types/ws": "^8.5.10",
     "axios": "^1.6.2",
     "chart.js": "^4.4.0",
     "date-fns": "^3.3.1",
     "finnhub": "^1.2.18",
-    "framer-motion": "^12.5.0",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-chartjs-2": "^5.2.0",
