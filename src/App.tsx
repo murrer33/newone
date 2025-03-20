@@ -19,6 +19,8 @@ import Pricing from "./pages/Pricing";
 import FAQ from "./pages/FAQ";
 import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
+import Home from "./pages/Home";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import PrivateRoute from "./components/PrivateRoute";
 
 function App() {
@@ -38,9 +40,15 @@ function App() {
                   <Route path="/faq" element={<FAQ />} />
                   <Route path="/about" element={<AboutUs />} />
                   <Route path="/contact" element={<ContactUs />} />
+                  <Route path="/home" element={<Home />} />
+                  
+                  {/* Payment Routes */}
+                  <Route path="/payment-success" element={<PrivateRoute><PaymentSuccess /></PrivateRoute>} />
+
+                  {/* Conditional Home Route */}
+                  <Route path="/" element={<PrivateRoute redirectTo="/home" fallback={<Home />}><Dashboard /></PrivateRoute>} />
 
                   {/* Protected Routes */}
-                  <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
                   <Route path="/market" element={<PrivateRoute><MarketPage /></PrivateRoute>} />
                   <Route path="/stock/:symbol" element={<PrivateRoute><StockPage /></PrivateRoute>} />
                   <Route path="/watchlist" element={<PrivateRoute><Watchlist /></PrivateRoute>} />

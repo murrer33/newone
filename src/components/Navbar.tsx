@@ -27,7 +27,9 @@ const Navbar: React.FC = () => {
     { name: 'Pricing', path: '/pricing' },
     { name: 'FAQ', path: '/faq' },
     { name: 'About Us', path: '/about' },
-    { name: 'Contact Us', path: '/contact' }
+    { name: 'Contact Us', path: '/contact' },
+    { name: 'Register', path: '/register' },
+    { name: 'Login', path: '/login' }
   ];
 
   const authenticatedLinks = [
@@ -70,12 +72,10 @@ const Navbar: React.FC = () => {
             
             {navLinks.map((link) => (
               <Link
-                key={link.path}
+                key={link.name}
                 to={link.path}
                 className={`px-3 py-2 rounded-md text-sm font-medium ${
-                  location.pathname === link.path
-                    ? 'bg-gray-800 text-white'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  location.pathname === link.path ? 'bg-gray-800' : 'hover:bg-gray-700'
                 }`}
               >
                 {link.name}
@@ -93,9 +93,8 @@ const Navbar: React.FC = () => {
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
+                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
                 >
-                  <LogOut className="h-5 w-5 mr-1" />
                   Logout
                 </button>
               </div>
@@ -117,97 +116,88 @@ const Navbar: React.FC = () => {
             )}
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
+          {/* Mobile Menu Button */}
+          <div className="-mr-2 flex md:hidden">
             <button
               onClick={toggleMenu}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:bg-gray-700 focus:text-white"
             >
-              {isMenuOpen ? (
-                <X className="block h-6 w-6" />
-              ) : (
-                <Menu className="block h-6 w-6" />
-              )}
+              <span className="sr-only">Open main menu</span>
+              {isMenuOpen ? <X className="block h-6 w-6" /> : <Menu className="block h-6 w-6" />}
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Mobile menu */}
-      {isMenuOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {user && (
-              <div className="relative mx-2 mb-3">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+              {user && (
+                <div className="relative mx-2 mb-3">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Search className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    className="block w-full pl-10 pr-3 py-2 rounded-md bg-gray-800 border border-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Search for stocks..."
+                  />
                 </div>
-                <input
-                  type="text"
-                  className="block w-full pl-10 pr-3 py-2 rounded-md bg-gray-800 border border-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Search for stocks..."
-                />
-              </div>
-            )}
-            
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`block px-3 py-2 rounded-md text-base font-medium ${
-                  location.pathname === link.path
-                    ? 'bg-gray-800 text-white'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {link.name}
-              </Link>
-            ))}
+              )}
+              
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  className={`block px-3 py-2 rounded-md text-base font-medium ${
+                    location.pathname === link.path ? 'bg-gray-800' : 'hover:bg-gray-700'
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              ))}
 
-            {user ? (
-              <>
-                {currentPlan && (
-                  <div className="px-3 py-2">
-                    <span className="px-3 py-1 rounded-full bg-blue-600 text-sm">
-                      {currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)}
-                    </span>
-                  </div>
-                )}
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    setIsMenuOpen(false);
-                  }}
-                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
-                >
-                  <div className="flex items-center">
-                    <LogOut className="h-5 w-5 mr-2" />
+              {user ? (
+                <>
+                  {currentPlan && (
+                    <div className="px-3 py-2">
+                      <span className="px-3 py-1 rounded-full bg-blue-600 text-sm">
+                        {currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)}
+                      </span>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsMenuOpen(false);
+                    }}
+                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-gray-700"
+                  >
                     Logout
-                  </div>
-                </button>
-              </>
-            ) : (
-              <div className="space-y-1">
-                <Link
-                  to="/login"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/register"
-                  className="block px-3 py-2 rounded-md text-base font-medium bg-blue-600 hover:bg-blue-700"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Register
-                </Link>
-              </div>
-            )}
+                  </button>
+                </>
+              ) : (
+                <div className="space-y-1">
+                  <Link
+                    to="/login"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="block px-3 py-2 rounded-md text-base font-medium bg-blue-600 hover:bg-blue-700"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Register
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </nav>
   );
 };

@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { useAuth } from './AuthContext';
+import { getSubscriptionStatus, getSubscriptionPlanFeatures } from '../services/stripe';
 
 interface SubscriptionPlan {
   id: string;
@@ -16,6 +17,8 @@ interface SubscriptionContextType {
   error: string | null;
   subscriptionPlans: SubscriptionPlan[];
   updateSubscription: (planId: string) => Promise<void>;
+  subscriptionDetails: any;
+  checkFeatureAccess: (featureName: string) => boolean;
 }
 
 const subscriptionPlans: SubscriptionPlan[] = [
@@ -23,19 +26,19 @@ const subscriptionPlans: SubscriptionPlan[] = [
     id: 'basic',
     name: 'Basic Plan',
     price: 9.99,
-    features: ['Basic stock analysis', 'Daily market updates', 'Limited API calls']
+    features: ['Basic stock analysis', 'Daily market updates', 'Limited API calls', 'Email support']
   },
   {
     id: 'intermediate',
     name: 'Intermediate Plan',
     price: 19.99,
-    features: ['Advanced stock analysis', 'Real-time market data', 'Technical indicators', 'Portfolio tracking']
+    features: ['Advanced stock analysis', 'Real-time market data', 'Technical indicators', 'Portfolio tracking', 'Priority email support']
   },
   {
     id: 'advanced',
     name: 'Advanced Plan',
     price: 29.99,
-    features: ['Premium stock analysis', 'AI predictions', 'Unlimited API calls', 'Priority support', 'Custom alerts']
+    features: ['Premium stock analysis', 'AI predictions', 'Unlimited API calls', 'Priority support', 'Custom alerts', 'Sentiment analysis', 'Market insights']
   }
 ];
 
@@ -51,6 +54,7 @@ export const useSubscription = () => {
 
 export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
+  const [subscriptionDetails, setSubscriptionDetails] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
@@ -58,6 +62,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     if (!user) {
       setCurrentPlan(null);
+      setSubscriptionDetails(null);
       setIsLoading(false);
       return;
     }
@@ -66,9 +71,12 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       doc(db, 'subscriptions', user.uid),
       (doc) => {
         if (doc.exists()) {
-          setCurrentPlan(doc.data().planId);
+          const data = doc.data();
+          setCurrentPlan(data.planId);
+          setSubscriptionDetails(data);
         } else {
           setCurrentPlan(null);
+          setSubscriptionDetails(null);
         }
         setIsLoading(false);
       },
@@ -88,22 +96,37 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     try {
       setError(null);
-      // Here you would typically integrate with Stripe
-      // For now, we'll just update the subscription in Firestore
-      await fetch('/api/create-subscription', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.uid,
-          planId
-        })
+      
+      // Update subscription in Firestore
+      // This would typically be done by a server-side webhook from Stripe
+      // For testing purposes, we'll update it directly here
+      await setDoc(doc(db, 'subscriptions', user.uid), {
+        planId,
+        userId: user.uid,
+        status: 'active',
+        createdAt: new Date(),
+        currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
       });
+      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update subscription');
       throw err;
     }
+  };
+
+  // Check if user has access to a specific feature
+  const checkFeatureAccess = (featureName: string) => {
+    if (!currentPlan) return false;
+    
+    // Get features for the current plan
+    const planFeatures = getSubscriptionPlanFeatures(currentPlan);
+    
+    // Check if the requested feature is available in the user's plan
+    return Object.entries(planFeatures).some(([key, value]) => {
+      if (key === featureName) return !!value;
+      if (Array.isArray(value) && value.includes(featureName)) return true;
+      return false;
+    });
   };
 
   const value = {
@@ -111,7 +134,9 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     isLoading,
     error,
     subscriptionPlans,
-    updateSubscription
+    updateSubscription,
+    subscriptionDetails,
+    checkFeatureAccess
   };
 
   return (
