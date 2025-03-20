@@ -1,16 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart3, Search, Menu, X, TrendingUp, Scale, LineChart } from 'lucide-react';
+import { BarChart3, Search, Menu, X, User, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useSubscription } from '../context/SubscriptionContext';
 
 const Navbar: React.FC = () => {
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, logout } = useAuth();
+  const { currentPlan } = useSubscription();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const navLinks = [
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Failed to logout:', error);
+    }
+  };
+
+  const publicLinks = [
+    { name: 'Home', path: '/' },
+    { name: 'Pricing', path: '/pricing' },
+    { name: 'FAQ', path: '/faq' },
+    { name: 'About Us', path: '/about' },
+    { name: 'Contact Us', path: '/contact' }
+  ];
+
+  const authenticatedLinks = [
     { name: 'Dashboard', path: '/' },
     { name: 'Market Overview', path: '/market' },
     { name: 'Popular Stocks', path: '/popular-stocks' },
@@ -20,6 +40,8 @@ const Navbar: React.FC = () => {
     { name: 'Screener', path: '/screener' }
   ];
 
+  const navLinks = user ? authenticatedLinks : publicLinks;
+
   return (
     <nav className="bg-gray-900 text-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -27,22 +49,24 @@ const Navbar: React.FC = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
               <BarChart3 className="h-8 w-8 text-blue-500" />
-              <span className="ml-2 text-xl font-bold">StockAnalyzer</span>
+              <span className="ml-2 text-xl font-bold">Finpulses</span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            <div className="relative mx-4">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
+            {user && (
+              <div className="relative mx-4">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Search className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  className="block w-64 pl-10 pr-3 py-2 rounded-md bg-gray-800 border border-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Search for stocks..."
+                />
               </div>
-              <input
-                type="text"
-                className="block w-64 pl-10 pr-3 py-2 rounded-md bg-gray-800 border border-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Search for stocks..."
-              />
-            </div>
+            )}
             
             {navLinks.map((link) => (
               <Link
@@ -57,6 +81,40 @@ const Navbar: React.FC = () => {
                 {link.name}
               </Link>
             ))}
+
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <div className="text-sm">
+                  {currentPlan && (
+                    <span className="px-3 py-1 rounded-full bg-blue-600">
+                      {currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
+                >
+                  <LogOut className="h-5 w-5 mr-1" />
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-4">
+                <Link
+                  to="/login"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-3 py-2 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700"
+                >
+                  Register
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -79,16 +137,18 @@ const Navbar: React.FC = () => {
       {isMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <div className="relative mx-2 mb-3">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
+            {user && (
+              <div className="relative mx-2 mb-3">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Search className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  className="block w-full pl-10 pr-3 py-2 rounded-md bg-gray-800 border border-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Search for stocks..."
+                />
               </div>
-              <input
-                type="text"
-                className="block w-full pl-10 pr-3 py-2 rounded-md bg-gray-800 border border-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Search for stocks..."
-              />
-            </div>
+            )}
             
             {navLinks.map((link) => (
               <Link
@@ -104,6 +164,47 @@ const Navbar: React.FC = () => {
                 {link.name}
               </Link>
             ))}
+
+            {user ? (
+              <>
+                {currentPlan && (
+                  <div className="px-3 py-2">
+                    <span className="px-3 py-1 rounded-full bg-blue-600 text-sm">
+                      {currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)}
+                    </span>
+                  </div>
+                )}
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setIsMenuOpen(false);
+                  }}
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
+                >
+                  <div className="flex items-center">
+                    <LogOut className="h-5 w-5 mr-2" />
+                    Logout
+                  </div>
+                </button>
+              </>
+            ) : (
+              <div className="space-y-1">
+                <Link
+                  to="/login"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="block px-3 py-2 rounded-md text-base font-medium bg-blue-600 hover:bg-blue-700"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Register
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}
