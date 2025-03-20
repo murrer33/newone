@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 
-const FINNHUB_API_KEY = 'cv85kmpr01qqdqh408n0cv85kmpr01qqdqh408ng'; // Replace with your Finnhub API key
+// Use environment variable instead of hardcoded API key
+const FINNHUB_API_KEY = import.meta.env.VITE_FINNHUB_API_KEY || '';
 
 interface NewsArticle {
   headline: string;
@@ -9,7 +10,7 @@ interface NewsArticle {
   image?: string;
   source: string;
   datetime: number;
-  impact?: 'positive' | 'negative' | 'neutral'; // Add impact field
+  impact?: 'high-positive' | 'positive' | 'neutral' | 'negative' | 'high-negative'; // Updated to match getImpact return type
 }
 
 export const useNews = (symbol: string) => {
