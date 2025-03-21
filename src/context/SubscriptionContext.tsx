@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { useAuth } from './AuthContext';
 import { getSubscriptionStatus, getSubscriptionPlanFeatures } from '../services/stripe';
