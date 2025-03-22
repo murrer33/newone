@@ -53,3 +53,60 @@ export const listenToLivePrices = (
     }
   };
 };
+
+// Function to check if the market is open
+export const checkMarketStatus = async () => {
+  const apiKey = "cv85kmpr01qqdqh408n0cv85kmpr01qqdqh408ng";
+  try {
+    const response = await fetch(
+      `https://finnhub.io/api/v1/stock/market-status?exchange=US&token=${apiKey}`
+    );
+    const data = await response.json();
+    return {
+      isOpen: data.isOpen,
+      holiday: data.holiday || null,
+      error: null
+    };
+  } catch (error) {
+    console.error('Error checking market status:', error);
+    return {
+      isOpen: null, // null when we don't know the status
+      holiday: null,
+      error: 'Failed to fetch market status'
+    };
+  }
+};
+
+// Function to fetch the last closing price
+export const fetchLastClosingPrice = async (symbol: string) => {
+  const apiKey = "cv85kmpr01qqdqh408n0cv85kmpr01qqdqh408ng";
+  try {
+    // Get stock candles for the last 2 days to make sure we have the latest closing price
+    const to = Math.floor(Date.now() / 1000);
+    const from = to - 172800; // 48 hours in seconds
+    
+    const response = await fetch(
+      `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=D&from=${from}&to=${to}&token=${apiKey}`
+    );
+    const data = await response.json();
+    
+    if (data.s === 'ok' && data.c && data.c.length > 0) {
+      // Return the most recent closing price
+      return {
+        price: data.c[data.c.length - 1],
+        error: null
+      };
+    } else {
+      return {
+        price: null,
+        error: 'No closing price data available'
+      };
+    }
+  } catch (error) {
+    console.error(`Error fetching last closing price for ${symbol}:`, error);
+    return {
+      price: null,
+      error: 'Failed to fetch closing price'
+    };
+  }
+};

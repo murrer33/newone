@@ -8,6 +8,12 @@ export interface StockData {
   marketCap: number;
 }
 
+export interface Stock {
+  symbol: string;
+  name: string;
+  price: number;
+}
+
 export interface HistoricalData {
   date: string;
   open: number;

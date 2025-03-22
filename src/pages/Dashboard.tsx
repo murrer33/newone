@@ -2,12 +2,13 @@ import React from 'react';
 import { BarChart3, TrendingUp, TrendingDown, DollarSign, MessageSquare } from 'lucide-react';
 import MarketOverview from '../components/MarketOverview';
 import NewsAnalysis from '../components/NewsAnalysis';
+import MarketStatus from '../components/MarketStatus';
 import { useStocks } from '../context/StockContext'; // Import the useStocks hook
 import { useNews } from '../hooks/useNews'; // For real news
 
 const Dashboard: React.FC = () => {
   // Use the global stock context
-  const { nasdaqStocks, bistStocks, loading: stocksLoading, error: stocksError } = useStocks();
+  const { nasdaqStocks, bistStocks, loading: stocksLoading, error: stocksError, marketStatus } = useStocks();
 
   // Fetch real news data
   const { news, loading: newsLoading, error: newsError } = useNews('AAPL');
@@ -75,12 +76,23 @@ const Dashboard: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Market Dashboard</h1>
 
+      {/* Market Status */}
+      <div className="mb-8">
+        <MarketStatus 
+          isOpen={marketStatus.isOpen} 
+          holiday={marketStatus.holiday} 
+        />
+      </div>
+
       {/* Real-Time Prices */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         {nasdaqStocks.slice(0, 3).map((stock) => (
           <div key={stock.symbol} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">{stock.symbol} Price</h2>
             <p className="text-3xl font-semibold text-gray-900 dark:text-white">${stock.price.toFixed(2)}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {marketStatus.isOpen ? 'Real-time price' : 'Last closing price'}
+            </p>
           </div>
         ))}
       </div>
@@ -170,6 +182,9 @@ const Dashboard: React.FC = () => {
                 <div className="text-right">
                   <p className="font-medium text-gray-900 dark:text-white">${stock.price.toFixed(2)}</p>
                   <p className="text-sm text-green-500">+{stock.changePercent.toFixed(2)}%</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {marketStatus.isOpen ? 'Real-time' : 'Last close'}
+                  </p>
                 </div>
               </div>
             ))}
@@ -191,6 +206,9 @@ const Dashboard: React.FC = () => {
                 <div className="text-right">
                   <p className="font-medium text-gray-900 dark:text-white">${stock.price.toFixed(2)}</p>
                   <p className="text-sm text-red-500">{stock.changePercent.toFixed(2)}%</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {marketStatus.isOpen ? 'Real-time' : 'Last close'}
+                  </p>
                 </div>
               </div>
             ))}
@@ -208,7 +226,7 @@ const Dashboard: React.FC = () => {
         ) : newsError ? (
           <p className="text-center text-red-500 dark:text-red-400">{newsError}</p>
         ) : (
-          <NewsAnalysis news={news} />
+          <NewsAnalysis news={news as any} />
         )}
       </div>
     </div>
