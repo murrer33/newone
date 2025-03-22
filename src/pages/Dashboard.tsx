@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, TrendingUp, TrendingDown, DollarSign, MessageSquare, RefreshCw, Clock } from 'lucide-react';
+import { BarChart3, TrendingUp, TrendingDown, DollarSign, MessageSquare, RefreshCw, Clock, AlertCircle } from 'lucide-react';
 import MarketOverview from '../components/MarketOverview';
 import NewsAnalysis from '../components/NewsAnalysis';
 import MarketStatus from '../components/MarketStatus';
@@ -87,9 +87,7 @@ const Dashboard: React.FC = () => {
     refreshData();
   };
 
-  if (stocksLoading) return <p>Loading stock data...</p>;
-  if (stocksError) return <p>{stocksError}</p>;
-
+  // Instead of returning just a loading or error state, we continue rendering with available data
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header with title and refresh button */}
@@ -112,6 +110,22 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* Error Messages */}
+      {stocksError && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-200 rounded-md text-red-600 flex items-center">
+          <AlertCircle className="h-5 w-5 mr-2" />
+          <span>{stocksError}</span>
+        </div>
+      )}
+
+      {/* Loading Indicator (only when initially loading with no data) */}
+      {stocksLoading && !nasdaqStocks.length && (
+        <div className="mb-4 p-3 bg-blue-100 border border-blue-200 rounded-md text-blue-600 flex items-center">
+          <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
+          <span>Loading stock data...</span>
+        </div>
+      )}
+
       {/* Market Status */}
       <div className="mb-8">
         <MarketStatus 
@@ -124,6 +138,7 @@ const Dashboard: React.FC = () => {
       <div className="mb-8">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
           {marketStatus.isOpen ? 'Real-Time Stock Prices' : 'Last Closing Prices'}
+          {stocksLoading && <span className="ml-2 text-sm font-normal text-gray-500">(Refreshing...)</span>}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {nasdaqStocks.slice(0, 3).map((stock) => (
@@ -132,6 +147,9 @@ const Dashboard: React.FC = () => {
               <p className="text-3xl font-semibold text-gray-900 dark:text-white">${stock.price.toFixed(2)}</p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {marketStatus.isOpen ? 'Real-time price' : 'Last closing price'}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                Auto-refreshes {marketStatus.isOpen ? 'every 30 seconds' : 'when market opens'}
               </p>
             </div>
           ))}
