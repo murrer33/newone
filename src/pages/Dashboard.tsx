@@ -1,14 +1,27 @@
 import React from 'react';
-import { BarChart3, TrendingUp, TrendingDown, DollarSign, MessageSquare } from 'lucide-react';
+import { BarChart3, TrendingUp, TrendingDown, DollarSign, MessageSquare, RefreshCw, Clock } from 'lucide-react';
 import MarketOverview from '../components/MarketOverview';
 import NewsAnalysis from '../components/NewsAnalysis';
 import MarketStatus from '../components/MarketStatus';
 import { useStocks } from '../context/StockContext'; // Import the useStocks hook
 import { useNews } from '../hooks/useNews'; // For real news
 
+const formatDateTime = (date: Date | null) => {
+  if (!date) return 'Never';
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+};
+
 const Dashboard: React.FC = () => {
   // Use the global stock context
-  const { nasdaqStocks, bistStocks, loading: stocksLoading, error: stocksError, marketStatus } = useStocks();
+  const { 
+    nasdaqStocks, 
+    bistStocks, 
+    loading: stocksLoading, 
+    error: stocksError, 
+    marketStatus,
+    refreshData,
+    lastUpdated
+  } = useStocks();
 
   // Fetch real news data
   const { news, loading: newsLoading, error: newsError } = useNews('AAPL');
@@ -69,12 +82,35 @@ const Dashboard: React.FC = () => {
     neutral: 30,
   };
 
+  // Handle manual refresh
+  const handleRefresh = () => {
+    refreshData();
+  };
+
   if (stocksLoading) return <p>Loading stock data...</p>;
   if (stocksError) return <p>{stocksError}</p>;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Market Dashboard</h1>
+      {/* Header with title and refresh button */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Market Dashboard</h1>
+        
+        <div className="flex items-center">
+          <div className="flex items-center mr-4 text-sm text-gray-500 dark:text-gray-400">
+            <Clock className="h-4 w-4 mr-1" />
+            <span>Last updated: {formatDateTime(lastUpdated)}</span>
+          </div>
+          <button 
+            onClick={handleRefresh}
+            disabled={stocksLoading}
+            className="flex items-center px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            <RefreshCw className={`h-4 w-4 mr-1 ${stocksLoading ? 'animate-spin' : ''}`} />
+            {stocksLoading ? 'Refreshing...' : 'Refresh'}
+          </button>
+        </div>
+      </div>
 
       {/* Market Status */}
       <div className="mb-8">
@@ -85,16 +121,21 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Real-Time Prices */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        {nasdaqStocks.slice(0, 3).map((stock) => (
-          <div key={stock.symbol} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{stock.symbol} Price</h2>
-            <p className="text-3xl font-semibold text-gray-900 dark:text-white">${stock.price.toFixed(2)}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {marketStatus.isOpen ? 'Real-time price' : 'Last closing price'}
-            </p>
-          </div>
-        ))}
+      <div className="mb-8">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+          {marketStatus.isOpen ? 'Real-Time Stock Prices' : 'Last Closing Prices'}
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {nasdaqStocks.slice(0, 3).map((stock) => (
+            <div key={stock.symbol} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{stock.symbol} Price</h2>
+              <p className="text-3xl font-semibold text-gray-900 dark:text-white">${stock.price.toFixed(2)}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {marketStatus.isOpen ? 'Real-time price' : 'Last closing price'}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Market Summary */}
