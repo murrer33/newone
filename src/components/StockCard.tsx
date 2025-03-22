@@ -1,14 +1,27 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { TrendingUp, TrendingDown } from 'lucide-react';
-import { StockData } from '../types';
+import { StockData, Stock } from '../types';
 
-interface StockCardProps {
-  stock: StockData;
+// Define the market status type matching the context
+interface MarketStatus {
+  isOpen: boolean | null;
+  holiday: string | null;
+  loading: boolean;
+  error: string | null;
 }
 
-const StockCard: React.FC<StockCardProps> = ({ stock }) => {
-  const { symbol, name, price, change, changePercent } = stock;
+interface StockCardProps {
+  stock: Stock | StockData;
+  marketStatus?: MarketStatus;
+}
+
+const StockCard: React.FC<StockCardProps> = ({ stock, marketStatus }) => {
+  const { symbol, name, price } = stock;
+  
+  // If it's a StockData, it will have these properties, otherwise default to reasonable values
+  const change = 'change' in stock ? stock.change : 0;
+  const changePercent = 'changePercent' in stock ? stock.changePercent : 0;
 
   // Ensure values are defined before using .toFixed()
   const formattedPrice = price ? price.toFixed(2) : '0.00';
@@ -17,6 +30,12 @@ const StockCard: React.FC<StockCardProps> = ({ stock }) => {
 
   // Determine if the change is positive
   const isPositive = (change || 0) >= 0;
+
+  // Create a price type message based on market status
+  const getPriceTypeLabel = () => {
+    if (!marketStatus || marketStatus.isOpen === null) return null;
+    return marketStatus.isOpen ? 'Real-time' : 'Last close';
+  };
 
   return (
     <Link to={`/stock/${symbol}`} className="block">
@@ -32,7 +51,14 @@ const StockCard: React.FC<StockCardProps> = ({ stock }) => {
         </div>
 
         <div className="mt-4">
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">${formattedPrice}</p>
+          <div className="flex items-center justify-between">
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">${formattedPrice}</p>
+            {marketStatus && (
+              <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded">
+                {getPriceTypeLabel()}
+              </span>
+            )}
+          </div>
           <div className="flex items-center mt-1">
             <span className={`text-sm font-medium ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
               {isPositive ? '+' : ''}{formattedChange} ({isPositive ? '+' : ''}{formattedChangePercent}%)

@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
-import { Globe, Search, ArrowDownUp } from 'lucide-react';
+import { Globe, Search, RefreshCw } from 'lucide-react';
 import { useStocks } from '../context/StockContext';
 import StockCard from '../components/StockCard';
+import MarketStatusHeader from '../components/MarketStatusHeader';
+import DataLoadingPlaceholder from '../components/DataLoadingPlaceholder';
+import { useStockPageData } from '../hooks/useStockPageData';
 
 const PopularStocks: React.FC = () => {
-  const { nasdaqStocks, loading, error } = useStocks(); // Assuming popular = NASDAQ
+  const { nasdaqStocks } = useStocks(); // Assuming popular = NASDAQ
+  const { 
+    loading, 
+    error, 
+    marketStatus,
+    lastUpdated,
+    handleRefresh
+  } = useStockPageData();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'symbol' | 'price'>('symbol');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -17,9 +28,6 @@ const PopularStocks: React.FC = () => {
       setSortDirection('asc');
     }
   };
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
 
   const filteredStocks = nasdaqStocks.filter(
     (stock) =>
@@ -39,10 +47,15 @@ const PopularStocks: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
-        <Globe className="h-6 w-6 text-blue-500 mr-2" />
-        Popular Stocks
-      </h1>
+      <MarketStatusHeader
+        title="Popular Stocks"
+        loading={loading}
+        error={error}
+        marketStatus={marketStatus}
+        lastUpdated={lastUpdated}
+        onRefresh={handleRefresh}
+      />
+      
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div className="relative w-full md:w-64 mb-4 md:mb-0">
@@ -80,17 +93,26 @@ const PopularStocks: React.FC = () => {
             </button>
           </div>
         </div>
+        {loading && (
+          <div className="mt-4 text-center text-sm text-gray-500 flex items-center justify-center">
+            <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> 
+            Refreshing stock data...
+          </div>
+        )}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {sortedStocks.map((stock) => (
-          <StockCard key={stock.symbol} stock={stock} />
-        ))}
-      </div>
-      {sortedStocks.length === 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
-          <p className="text-gray-500 dark:text-gray-400">No stocks found matching "{searchTerm}"</p>
+      
+      <DataLoadingPlaceholder
+        isLoading={loading && sortedStocks.length === 0}
+        isEmpty={sortedStocks.length === 0 && !loading}
+        loadingMessage="Loading popular stocks..."
+        emptyMessage={`No stocks found matching "${searchTerm}"`}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {sortedStocks.map((stock) => (
+            <StockCard key={stock.symbol} stock={stock} marketStatus={marketStatus} />
+          ))}
         </div>
-      )}
+      </DataLoadingPlaceholder>
     </div>
   );
 };

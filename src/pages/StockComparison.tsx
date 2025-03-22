@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Scale, Search, X, Plus, BarChart3 } from 'lucide-react';
+import { Scale, Search, X, Plus, BarChart3, RefreshCw } from 'lucide-react';
 import { useStocks } from '../context/StockContext';
 import {
   Chart as ChartJS,
@@ -13,18 +13,27 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { generateHistoricalData } from '../utils/mockData'; // Keep for chart data
+import MarketStatusHeader from '../components/MarketStatusHeader';
+import DataLoadingPlaceholder from '../components/DataLoadingPlaceholder';
+import { useStockPageData } from '../hooks/useStockPageData';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const StockComparison: React.FC = () => {
-  const { nasdaqStocks, bistStocks, loading, error } = useStocks();
+  const { nasdaqStocks, bistStocks } = useStocks();
+  const { 
+    loading, 
+    error, 
+    marketStatus,
+    lastUpdated,
+    handleRefresh,
+    getPriceTypeMessage
+  } = useStockPageData();
+  
   const allStocks = [...nasdaqStocks, ...bistStocks];
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStocks, setSelectedStocks] = useState<any[]>([]); // Adjust type if needed
   const [timeframe, setTimeframe] = useState<'1W' | '1M' | '3M' | '1Y'>('1M');
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
 
   const filteredStocks = allStocks.filter(
     (stock) =>
@@ -107,12 +116,25 @@ const StockComparison: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
-        <Scale className="h-6 w-6 text-blue-500 mr-2" />
-        Stock Comparison
-      </h1>
+      <MarketStatusHeader
+        title="Stock Comparison"
+        loading={loading}
+        error={error}
+        marketStatus={marketStatus}
+        lastUpdated={lastUpdated}
+        onRefresh={handleRefresh}
+      />
+      
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Select Stocks to Compare</h2>
+        <div className="flex justify-between items-start mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Select Stocks to Compare</h2>
+          {loading && (
+            <div className="text-sm text-gray-500 flex items-center">
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> 
+              Refreshing...
+            </div>
+          )}
+        </div>
         <div className="flex flex-wrap gap-2 mb-4">
           {selectedStocks.map((stock) => (
             <div
@@ -151,8 +173,13 @@ const StockComparison: React.FC = () => {
         </div>
         {searchTerm && (
           <div className="mt-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm max-h-60 overflow-y-auto">
-            {filteredStocks.length > 0 ? (
-              filteredStocks.slice(0, 5).map((stock) => (
+            <DataLoadingPlaceholder
+              isLoading={loading && filteredStocks.length === 0}
+              isEmpty={filteredStocks.length === 0 && !loading}
+              loadingMessage="Loading stocks..."
+              emptyMessage={`No stocks found matching "${searchTerm}"`}
+            >
+              {filteredStocks.slice(0, 5).map((stock) => (
                 <div
                   key={stock.symbol}
                   className="flex items-center justify-between p-3 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-b-0"
@@ -166,12 +193,8 @@ const StockComparison: React.FC = () => {
                     <Plus className="h-5 w-5" />
                   </button>
                 </div>
-              ))
-            ) : (
-              <div className="p-3 text-center text-gray-500 dark:text-gray-400">
-                No stocks found matching "{searchTerm}"
-              </div>
-            )}
+              ))}
+            </DataLoadingPlaceholder>
           </div>
         )}
       </div>
@@ -180,6 +203,9 @@ const StockComparison: React.FC = () => {
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
             <BarChart3 className="h-5 w-5 text-blue-500 mr-2" />
             Performance Comparison
+            <span className="text-sm ml-2 font-normal text-gray-500">
+              ({marketStatus.isOpen ? 'Real-time data' : 'Closing prices'})
+            </span>
           </h2>
           <div className="flex space-x-2">
             {(['1W', '1M', '3M', '1Y'] as const).map((period) => (
@@ -197,25 +223,23 @@ const StockComparison: React.FC = () => {
             ))}
           </div>
         </div>
-        {selectedStocks.length > 0 ? (
-          <div className="h-80">
-            <Line data={chartConfig?.chartData} options={chartConfig?.options as any} />
-          </div>
-        ) : (
-          <div className="h-80 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
-            <BarChart3 className="h-12 w-12 text-gray-400 mb-2" />
-            <p className="text-gray-500 dark:text-gray-400 text-center">
-              Select stocks to compare their performance
-            </p>
-          </div>
-        )}
-        {selectedStocks.length > 0 && (
+        <DataLoadingPlaceholder
+          isLoading={loading && selectedStocks.length > 0}
+          isEmpty={selectedStocks.length === 0}
+          loadingMessage="Loading chart data..."
+          emptyMessage="Select stocks to compare their performance"
+        >
+          {chartConfig && (
+            <div className="h-80">
+              <Line data={chartConfig.chartData} options={chartConfig.options as any} />
+            </div>
+          )}
           <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
             <p className="text-sm text-blue-700 dark:text-blue-400">
               Chart shows percentage change from the beginning of the selected time period.
             </p>
           </div>
-        )}
+        </DataLoadingPlaceholder>
       </div>
       {selectedStocks.length > 0 && (
         <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
@@ -238,6 +262,7 @@ const StockComparison: React.FC = () => {
                       <div>
                         <div className="text-sm font-medium text-gray-900 dark:text-white">{stock.symbol}</div>
                         <div className="text-sm text-gray-500 dark:text-gray-400">{stock.name}</div>
+                        <div className="text-xs text-gray-500">{getPriceTypeMessage()}</div>
                       </div>
                     </div>
                   </td>
