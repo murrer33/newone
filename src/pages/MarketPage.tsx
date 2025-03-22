@@ -1,10 +1,22 @@
 import React from 'react';
-import { Globe, TrendingUp, TrendingDown, Search } from 'lucide-react';
+import { Globe, TrendingUp, TrendingDown, Search, RefreshCw } from 'lucide-react';
 import { useStocks } from '../context/StockContext';
 import StockCard from '../components/StockCard';
+import MarketStatusHeader from '../components/MarketStatusHeader';
+import DataLoadingPlaceholder from '../components/DataLoadingPlaceholder';
+import { useStockPageData } from '../hooks/useStockPageData';
 
 const MarketPage: React.FC = () => {
-  const { nasdaqStocks, bistStocks, loading, error } = useStocks();
+  const { nasdaqStocks, bistStocks } = useStocks();
+  const { 
+    loading, 
+    error, 
+    marketStatus,
+    lastUpdated,
+    handleRefresh,
+    getPriceTypeMessage
+  } = useStockPageData();
+  
   const allStocks = [...nasdaqStocks, ...bistStocks];
   const [searchTerm, setSearchTerm] = React.useState('');
   const [sortBy, setSortBy] = React.useState<'symbol' | 'price'>('symbol'); // Removed 'change'
@@ -18,9 +30,6 @@ const MarketPage: React.FC = () => {
       setSortDirection('asc');
     }
   };
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
 
   const filteredStocks = allStocks.filter(
     (stock) =>
@@ -48,10 +57,15 @@ const MarketPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
-        <Globe className="h-6 w-6 text-blue-500 mr-2" />
-        Market Overview
-      </h1>
+      <MarketStatusHeader
+        title="Market Overview"
+        loading={loading}
+        error={error}
+        marketStatus={marketStatus}
+        lastUpdated={lastUpdated}
+        onRefresh={handleRefresh}
+      />
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {marketIndices.map((index, i) => (
           <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
@@ -70,6 +84,7 @@ const MarketPage: React.FC = () => {
           </div>
         ))}
       </div>
+      
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div className="relative w-full md:w-64 mb-4 md:mb-0">
@@ -84,40 +99,59 @@ const MarketPage: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => handleSort('symbol')}
-              className={`px-3 py-2 rounded-md text-sm font-medium ${
-                sortBy === 'symbol'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-              }`}
-            >
-              Symbol {sortBy === 'symbol' && (sortDirection === 'asc' ? '↑' : '↓')}
-            </button>
-            <button
-              onClick={() => handleSort('price')}
-              className={`px-3 py-2 rounded-md text-sm font-medium ${
-                sortBy === 'price'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-              }`}
-            >
-              Price {sortBy === 'price' && (sortDirection === 'asc' ? '↑' : '↓')}
-            </button>
+          <div className="flex items-center">
+            <div className="flex space-x-2">
+              <button
+                onClick={() => handleSort('symbol')}
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                  sortBy === 'symbol'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                }`}
+              >
+                Symbol {sortBy === 'symbol' && (sortDirection === 'asc' ? '↑' : '↓')}
+              </button>
+              <button
+                onClick={() => handleSort('price')}
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                  sortBy === 'price'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                }`}
+              >
+                Price {sortBy === 'price' && (sortDirection === 'asc' ? '↑' : '↓')}
+              </button>
+            </div>
+            
+            {loading && (
+              <div className="ml-4 text-sm text-gray-500 flex items-center">
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> 
+                Refreshing...
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="mt-4 flex items-center">
+          <div className="text-sm text-gray-500">
+            <span className="font-medium">Market status:</span> {marketStatus.isOpen ? 'Open' : 'Closed'} • 
+            <span className="ml-1">{marketStatus.isOpen ? 'Showing real-time prices' : 'Showing last closing prices'}</span>
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {sortedStocks.map((stock) => (
-          <StockCard key={stock.symbol} stock={stock} />
-        ))}
-      </div>
-      {sortedStocks.length === 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
-          <p className="text-gray-500 dark:text-gray-400">No stocks found matching "{searchTerm}"</p>
+      
+      <DataLoadingPlaceholder
+        isLoading={loading && sortedStocks.length === 0}
+        isEmpty={sortedStocks.length === 0 && !loading}
+        loadingMessage="Loading market data..."
+        emptyMessage={`No stocks found matching "${searchTerm}"`}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {sortedStocks.map((stock) => (
+            <StockCard key={stock.symbol} stock={stock} marketStatus={marketStatus} />
+          ))}
         </div>
-      )}
+      </DataLoadingPlaceholder>
     </div>
   );
 };
