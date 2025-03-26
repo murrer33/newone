@@ -13,6 +13,7 @@ import StockPage from "./pages/StockPage";
 import PopularStocks from "./pages/PopularStocks";
 import TrendingStocks from "./pages/TrendingStocks";
 import StockComparison from "./pages/StockComparison";
+import EconomicalNews from "./pages/EconomicalNews";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Pricing from "./pages/Pricing";
@@ -56,6 +57,7 @@ function App() {
                   <Route path="/popular-stocks" element={<PrivateRoute><PopularStocks /></PrivateRoute>} />
                   <Route path="/trending-stocks" element={<PrivateRoute><TrendingStocks /></PrivateRoute>} />
                   <Route path="/compare-stocks" element={<PrivateRoute><StockComparison /></PrivateRoute>} />
+                  <Route path="/economic-news" element={<PrivateRoute><EconomicalNews /></PrivateRoute>} />
 
                   {/* Fallback Route */}
                   <Route path="*" element={<Navigate to="/" replace />} />

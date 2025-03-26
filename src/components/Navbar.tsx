@@ -1,6 +1,23 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart3, Search, Menu, X, User, LogOut } from 'lucide-react';
+import { 
+  BarChart, 
+  Home, 
+  LineChart, 
+  Compass, 
+  Search, 
+  Eye, 
+  TrendingUp, 
+  Award, 
+  ScanLine, 
+  LogOut, 
+  Moon, 
+  Sun,
+  Menu,
+  X,
+  UserCircle,
+  Newspaper,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 
@@ -39,7 +56,8 @@ const Navbar: React.FC = () => {
     { name: 'Trending Stocks', path: '/trending-stocks' },
     { name: 'Compare Stocks', path: '/compare-stocks' },
     { name: 'Watchlist', path: '/watchlist' },
-    { name: 'Screener', path: '/screener' }
+    { name: 'Screener', path: '/screener' },
+    { name: 'Economic News', path: '/economic-news' },
   ];
 
   const navLinks = user ? authenticatedLinks : publicLinks;
@@ -50,7 +68,7 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
-              <BarChart3 className="h-8 w-8 text-blue-500" />
+              <BarChart className="h-8 w-8 text-blue-500" />
               <span className="ml-2 text-xl font-bold">Finpulses</span>
             </Link>
           </div>
