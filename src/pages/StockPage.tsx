@@ -14,6 +14,7 @@ import KeyStatistics from '../components/KeyStatistics';
 import CompanyProfile from '../components/CompanyProfile';
 import MarketStatusHeader from '../components/MarketStatusHeader';
 import DataLoadingPlaceholder from '../components/DataLoadingPlaceholder';
+import BidAskContainer from '../components/BidAskContainer';
 import { useStockPageData } from '../hooks/useStockPageData';
 import {
   generateHistoricalData,
@@ -237,6 +238,16 @@ const StockPage: React.FC = () => {
           >
             <StockChart data={historicalData} timeframe={timeframe} onTimeframeChange={setTimeframe} />
           </DataLoadingPlaceholder>
+          
+          {symbol && (
+            <DataLoadingPlaceholder
+              isLoading={false}
+              isEmpty={false}
+              loadingMessage="Loading bid/ask data..."
+            >
+              <BidAskContainer symbol={symbol} />
+            </DataLoadingPlaceholder>
+          )}
           
           <DataLoadingPlaceholder
             isLoading={loading && !mockKeyStats}

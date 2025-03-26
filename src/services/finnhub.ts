@@ -110,3 +110,43 @@ export const fetchLastClosingPrice = async (symbol: string) => {
     };
   }
 };
+
+// Function to fetch bid and ask data for a stock symbol
+export const fetchBidAskData = async (symbol: string) => {
+  const apiKey = import.meta.env.VITE_FINNHUB_API_KEY || "cv85kmpr01qqdqh408n0cv85kmpr01qqdqh408ng";
+  
+  try {
+    const response = await fetch(
+      `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${apiKey}`
+    );
+    
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    return {
+      symbol,
+      bidPrice: data.b || null,
+      askPrice: data.a || null,
+      bidVolume: null, // Finnhub API doesn't provide bid/ask volume directly in the quote endpoint
+      askVolume: null,
+      spread: data.a && data.b ? (data.a - data.b).toFixed(2) : null,
+      timestamp: new Date().toISOString(),
+      error: null
+    };
+  } catch (error) {
+    console.error(`Error fetching bid-ask data for ${symbol}:`, error);
+    return {
+      symbol,
+      bidPrice: null,
+      askPrice: null,
+      bidVolume: null,
+      askVolume: null,
+      spread: null,
+      timestamp: new Date().toISOString(),
+      error: 'Failed to fetch bid-ask data'
+    };
+  }
+};
