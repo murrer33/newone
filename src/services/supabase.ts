@@ -23,24 +23,60 @@ export const supabase = createClient(supabaseUrl, supabaseKey);
 // Submit feedback to Supabase
 export const submitFeedbackToSupabase = async (feedback: Feedback): Promise<boolean> => {
   try {
-    const { data, error } = await supabase
-      .from('feedbacks')
-      .insert([
-        {
-          id: feedback.id,
-          user_id: feedback.userId,
-          rating: feedback.rating,
-          comments: feedback.comments || '',
-          created_at: new Date(feedback.createdAt).toISOString()
-        }
-      ]);
-      
-    if (error) {
-      console.error('Error submitting feedback to Supabase:', error);
+    // Make sure Supabase client is initialized properly
+    if (!supabase) {
+      console.error('Supabase client not initialized');
       return false;
     }
+
+    // Try to submit with retry logic (up to 3 attempts)
+    let attempts = 0;
+    const maxAttempts = 3;
     
-    return true;
+    while (attempts < maxAttempts) {
+      attempts++;
+      try {
+        const { data, error } = await supabase
+          .from('feedbacks')
+          .insert([
+            {
+              id: feedback.id,
+              user_id: feedback.userId,
+              rating: feedback.rating,
+              comments: feedback.comments || '',
+              created_at: new Date(feedback.createdAt).toISOString()
+            }
+          ]);
+          
+        if (error) {
+          console.error(`Attempt ${attempts}/${maxAttempts} - Error submitting feedback to Supabase:`, error);
+          
+          // If it's the last attempt, return false
+          if (attempts === maxAttempts) {
+            return false;
+          }
+          
+          // Wait for a short delay before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          continue;
+        }
+        
+        // Success
+        return true;
+      } catch (innerError) {
+        console.error(`Attempt ${attempts}/${maxAttempts} - Exception in Supabase feedback submission:`, innerError);
+        
+        // If it's the last attempt, throw the error
+        if (attempts === maxAttempts) {
+          return false;
+        }
+        
+        // Wait for a short delay before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    
+    return false;
   } catch (error) {
     console.error('Exception submitting feedback to Supabase:', error);
     return false;

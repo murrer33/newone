@@ -43,11 +43,15 @@ export const createOrUpdateUser = async (user: Partial<User> & { uid: string }):
       // Generate a referral ID for new users
       const referralId = generateReferralId(user.uid);
       
+      // Generate a default username (can be changed later)
+      const username = user.email ? user.email.split('@')[0] : `user${Math.floor(Math.random() * 10000)}`;
+      
       // Create new user
       await setDoc(userRef, {
         email: user.email,
         displayName: user.displayName || '',
         photoURL: user.photoURL || '',
+        username,
         tokens: 0,
         referralId,
         referralCount: 0,

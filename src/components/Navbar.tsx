@@ -99,9 +99,23 @@ const Navbar: React.FC = () => {
               <BarChart className="h-8 w-8 text-blue-500" />
               <span className="ml-2 text-xl font-bold">Finpulses</span>
             </Link>
+            
+            {/* Desktop Navigation - Moved closer to logo */}
+            <div className="hidden md:flex items-center ml-6">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                    location.pathname === link.path ? 'bg-gray-800' : 'hover:bg-gray-700'
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </div>
           </div>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
             {user && (
               <div className="relative mx-4">
@@ -116,18 +130,6 @@ const Navbar: React.FC = () => {
               </div>
             )}
             
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.path}
-                className={`px-3 py-2 rounded-md text-sm font-medium ${
-                  location.pathname === link.path ? 'bg-gray-800' : 'hover:bg-gray-700'
-                }`}
-              >
-                {link.name}
-              </Link>
-            ))}
-
             {user ? (
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
@@ -170,8 +172,11 @@ const Navbar: React.FC = () => {
                       <div className="px-4 py-2 border-b border-gray-700">
                         <p className="text-sm font-medium">{user?.displayName || 'User'}</p>
                         <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                        {userData?.username && (
+                          <p className="text-xs text-gray-300 mt-1">@{userData.username}</p>
+                        )}
                         {userData?.referralId && (
-                          <p className="text-xs text-blue-400 mt-1">ID: {userData.referralId}</p>
+                          <p className="text-xs text-blue-400 mt-1">Referral ID: {userData.referralId}</p>
                         )}
                       </div>
                       
@@ -284,8 +289,11 @@ const Navbar: React.FC = () => {
                       <div>
                         <p className="font-medium">{user?.displayName || 'User'}</p>
                         <p className="text-xs text-gray-400">{user?.email}</p>
+                        {userData?.username && (
+                          <p className="text-xs text-gray-300">@{userData.username}</p>
+                        )}
                         {userData?.referralId && (
-                          <p className="text-xs text-blue-400">ID: {userData.referralId}</p>
+                          <p className="text-xs text-blue-400">Referral ID: {userData.referralId}</p>
                         )}
                       </div>
                     </div>
