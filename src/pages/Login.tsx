@@ -1,14 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToken } from '../context/TokenContext';
+import FeedbackModal from '../components/FeedbackModal';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
   const navigate = useNavigate();
   const { signIn, signInWithGoogle } = useAuth();
+  const { userData, completeUserQuest } = useToken();
+
+  // Check if feedback should be shown (less than 7 days since last feedback)
+  useEffect(() => {
+    if (userData) {
+      const shouldShowFeedback = !userData.lastFeedback || 
+        (Date.now() - userData.lastFeedback > 7 * 24 * 60 * 60 * 1000);
+      
+      // Only show feedback if we just logged in
+      if (shouldShowFeedback && loading === false && error === null && email !== '') {
+        // Delay showing feedback to let the dashboard load first
+        setTimeout(() => {
+          setShowFeedback(true);
+        }, 1000);
+        
+        // Try to complete the login quest
+        const loginQuestId = 'daily-login';
+        if (userData.completedQuests && !userData.completedQuests[loginQuestId]) {
+          completeUserQuest(loginQuestId);
+        }
+      }
+    }
+  }, [userData, loading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,6 +157,11 @@ const Login: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <FeedbackModal 
+        isOpen={showFeedback} 
+        onClose={() => setShowFeedback(false)} 
+      />
     </div>
   );
 };

@@ -17,15 +17,18 @@ import {
   X,
   UserCircle,
   Newspaper,
+  Coins
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
+import { useToken } from '../context/TokenContext';
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const { user, logout } = useAuth();
   const { currentPlan } = useSubscription();
+  const { userData } = useToken();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -102,17 +105,29 @@ const Navbar: React.FC = () => {
 
             {user ? (
               <div className="flex items-center space-x-4">
-                <div className="text-sm">
+                <div className="flex items-center space-x-2">
+                  <div className="flex items-center bg-yellow-600/20 rounded-full px-3 py-1 text-yellow-400">
+                    <Coins className="h-4 w-4 mr-1" />
+                    <span className="text-sm font-medium">{userData?.tokens || 0}</span>
+                  </div>
                   {currentPlan && (
-                    <span className="px-3 py-1 rounded-full bg-blue-600">
+                    <span className="px-3 py-1 rounded-full bg-blue-600 text-sm">
                       {currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)}
                     </span>
                   )}
                 </div>
+                <Link
+                  to="/profile"
+                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 flex items-center"
+                >
+                  <UserCircle className="h-5 w-5 mr-1" />
+                  Profile
+                </Link>
                 <button
                   onClick={handleLogout}
-                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
+                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 flex items-center"
                 >
+                  <LogOut className="h-5 w-5 mr-1" />
                   Logout
                 </button>
               </div>
@@ -177,20 +192,33 @@ const Navbar: React.FC = () => {
 
               {user ? (
                 <>
-                  {currentPlan && (
-                    <div className="px-3 py-2">
+                  <div className="px-3 py-2 flex items-center justify-between">
+                    <div className="flex items-center bg-yellow-600/20 rounded-full px-3 py-1 text-yellow-400">
+                      <Coins className="h-4 w-4 mr-1" />
+                      <span className="text-sm font-medium">{userData?.tokens || 0}</span>
+                    </div>
+                    {currentPlan && (
                       <span className="px-3 py-1 rounded-full bg-blue-600 text-sm">
                         {currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)}
                       </span>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                  <Link
+                    to="/profile"
+                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-gray-700 flex items-center"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <UserCircle className="h-5 w-5 mr-2" />
+                    Profile
+                  </Link>
                   <button
                     onClick={() => {
                       handleLogout();
                       setIsMenuOpen(false);
                     }}
-                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-gray-700"
+                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-gray-700 flex items-center"
                   >
+                    <LogOut className="h-5 w-5 mr-2" />
                     Logout
                   </button>
                 </>

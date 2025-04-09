@@ -1,0 +1,167 @@
+import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
+import { db } from './firebase';
+import { User, Quest, Feedback } from '../types/User';
+
+// Get user data
+export const getUserData = async (userId: string): Promise<User | null> => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    const userSnap = await getDoc(userRef);
+    
+    if (userSnap.exists()) {
+      return userSnap.data() as User;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting user data:', error);
+    return null;
+  }
+};
+
+// Create or update user data
+export const createOrUpdateUser = async (user: Partial<User> & { uid: string }): Promise<boolean> => {
+  try {
+    const userRef = doc(db, 'users', user.uid);
+    const userSnap = await getDoc(userRef);
+    
+    if (userSnap.exists()) {
+      // Update existing user
+      await updateDoc(userRef, {
+        ...user,
+        updatedAt: Date.now(),
+      });
+    } else {
+      // Create new user
+      await setDoc(userRef, {
+        email: user.email,
+        displayName: user.displayName || '',
+        photoURL: user.photoURL || '',
+        tokens: 0,
+        completedQuests: {},
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        ...user
+      });
+    }
+    return true;
+  } catch (error) {
+    console.error('Error creating/updating user:', error);
+    return false;
+  }
+};
+
+// Add tokens to user
+export const addTokens = async (userId: string, amount: number): Promise<boolean> => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    const userSnap = await getDoc(userRef);
+    
+    if (userSnap.exists()) {
+      const userData = userSnap.data() as User;
+      await updateDoc(userRef, {
+        tokens: (userData.tokens || 0) + amount,
+        updatedAt: Date.now()
+      });
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error adding tokens:', error);
+    return false;
+  }
+};
+
+// Get available quests
+export const getAvailableQuests = async (): Promise<Quest[]> => {
+  try {
+    const now = Date.now();
+    const questsRef = collection(db, 'quests');
+    const q = query(questsRef, where('expiresAt', '>', now));
+    const questsSnap = await getDocs(q);
+    
+    return questsSnap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as Quest));
+  } catch (error) {
+    console.error('Error getting quests:', error);
+    return [];
+  }
+};
+
+// Complete a quest
+export const completeQuest = async (userId: string, questId: string): Promise<boolean> => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    const questRef = doc(db, 'quests', questId);
+    
+    const [userSnap, questSnap] = await Promise.all([
+      getDoc(userRef),
+      getDoc(questRef)
+    ]);
+    
+    if (userSnap.exists() && questSnap.exists()) {
+      const userData = userSnap.data() as User;
+      const questData = questSnap.data() as Quest;
+      
+      // Check if quest was already completed and rewarded
+      if (userData.completedQuests?.[questId]?.rewarded) {
+        return false;
+      }
+      
+      // Mark quest as completed
+      const completedQuests = {
+        ...userData.completedQuests,
+        [questId]: {
+          completedAt: Date.now(),
+          rewarded: true
+        }
+      };
+      
+      // Add tokens to user
+      await updateDoc(userRef, {
+        completedQuests,
+        tokens: (userData.tokens || 0) + questData.tokenReward,
+        updatedAt: Date.now()
+      });
+      
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error completing quest:', error);
+    return false;
+  }
+};
+
+// Submit feedback
+export const submitFeedback = async (userId: string, rating: number, comments?: string): Promise<boolean> => {
+  try {
+    const feedbackRef = collection(db, 'feedback');
+    const feedback: Feedback = {
+      id: `${userId}_${Date.now()}`,
+      userId,
+      rating,
+      comments,
+      createdAt: Date.now()
+    };
+    
+    await setDoc(doc(feedbackRef, feedback.id), feedback);
+    
+    // Update last feedback timestamp on user
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, {
+      lastFeedback: Date.now(),
+      updatedAt: Date.now()
+    });
+    
+    // Add tokens reward for feedback (10 tokens)
+    await addTokens(userId, 10);
+    
+    return true;
+  } catch (error) {
+    console.error('Error submitting feedback:', error);
+    return false;
+  }
+}; 
