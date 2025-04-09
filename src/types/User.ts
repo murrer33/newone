@@ -4,6 +4,9 @@ export interface User {
   displayName?: string;
   photoURL?: string;
   tokens: number;
+  referralId: string;
+  referredBy?: string;
+  referralCount: number;
   completedQuests: {
     [questId: string]: {
       completedAt: number;

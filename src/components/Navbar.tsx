@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   BarChart, 
   Home, 
@@ -17,7 +17,11 @@ import {
   X,
   UserCircle,
   Newspaper,
-  Coins
+  Coins,
+  Settings,
+  User,
+  Share2,
+  ChevronDown
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
@@ -25,18 +29,41 @@ import { useToken } from '../context/TokenContext';
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { currentPlan } = useSubscription();
   const { userData } = useToken();
+
+  // Close profile menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    }
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [profileMenuRef]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const toggleProfileMenu = () => {
+    setShowProfileMenu(!showProfileMenu);
+  };
+
   const handleLogout = async () => {
     try {
       await logout();
+      setShowProfileMenu(false);
+      navigate('/login');
     } catch (error) {
       console.error('Failed to logout:', error);
     }
@@ -114,20 +141,68 @@ const Navbar: React.FC = () => {
                     </span>
                   )}
                 </div>
-                <Link
-                  to="/profile"
-                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 flex items-center"
-                >
-                  <UserCircle className="h-5 w-5 mr-1" />
-                  Profile
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 flex items-center"
-                >
-                  <LogOut className="h-5 w-5 mr-1" />
-                  Logout
-                </button>
+                
+                {/* Profile Avatar with Dropdown */}
+                <div className="relative" ref={profileMenuRef}>
+                  <button
+                    onClick={toggleProfileMenu}
+                    className="flex items-center focus:outline-none"
+                  >
+                    <div className="h-9 w-9 rounded-full overflow-hidden border-2 border-gray-700 hover:border-blue-500 transition-colors duration-200">
+                      {user?.photoURL ? (
+                        <img 
+                          src={user.photoURL} 
+                          alt="Profile" 
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-blue-800 flex items-center justify-center text-lg font-semibold">
+                          {user?.displayName ? user.displayName[0].toUpperCase() : user?.email ? user.email[0].toUpperCase() : 'U'}
+                        </div>
+                      )}
+                    </div>
+                    <ChevronDown className="ml-1 h-4 w-4 text-gray-400" />
+                  </button>
+                  
+                  {/* Dropdown Menu */}
+                  {showProfileMenu && (
+                    <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-1 z-10 border border-gray-700">
+                      <div className="px-4 py-2 border-b border-gray-700">
+                        <p className="text-sm font-medium">{user?.displayName || 'User'}</p>
+                        <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                        {userData?.referralId && (
+                          <p className="text-xs text-blue-400 mt-1">ID: {userData.referralId}</p>
+                        )}
+                      </div>
+                      
+                      <Link
+                        to="/profile"
+                        className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 flex items-center"
+                        onClick={() => setShowProfileMenu(false)}
+                      >
+                        <User className="h-4 w-4 mr-2" />
+                        My Profile
+                      </Link>
+                      
+                      <Link
+                        to="/profile#referral"
+                        className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 flex items-center"
+                        onClick={() => setShowProfileMenu(false)}
+                      >
+                        <Share2 className="h-4 w-4 mr-2" />
+                        Referrals ({userData?.referralCount || 0})
+                      </Link>
+                      
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 flex items-center"
+                      >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="flex items-center space-x-4">
@@ -190,25 +265,62 @@ const Navbar: React.FC = () => {
 
               {user ? (
                 <>
-                  <div className="px-3 py-2 flex items-center justify-between">
-                    <div className="flex items-center bg-yellow-600/20 rounded-full px-3 py-1 text-yellow-400">
-                      <Coins className="h-4 w-4 mr-1" />
-                      <span className="text-sm font-medium">{userData?.tokens || 0}</span>
+                  {/* User Profile Info */}
+                  <div className="px-3 py-2 border-t border-b border-gray-700 my-2">
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-gray-700 mr-3">
+                        {user?.photoURL ? (
+                          <img 
+                            src={user.photoURL} 
+                            alt="Profile" 
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="h-full w-full bg-blue-800 flex items-center justify-center text-lg font-semibold">
+                            {user?.displayName ? user.displayName[0].toUpperCase() : user?.email ? user.email[0].toUpperCase() : 'U'}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium">{user?.displayName || 'User'}</p>
+                        <p className="text-xs text-gray-400">{user?.email}</p>
+                        {userData?.referralId && (
+                          <p className="text-xs text-blue-400">ID: {userData.referralId}</p>
+                        )}
+                      </div>
                     </div>
-                    {currentPlan && (
-                      <span className="px-3 py-1 rounded-full bg-blue-600 text-sm">
-                        {currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)}
-                      </span>
-                    )}
+
+                    <div className="flex mt-2 justify-between items-center">
+                      <div className="flex items-center bg-yellow-600/20 rounded-full px-3 py-1 text-yellow-400">
+                        <Coins className="h-4 w-4 mr-1" />
+                        <span className="text-sm font-medium">{userData?.tokens || 0}</span>
+                      </div>
+                      {currentPlan && (
+                        <span className="px-3 py-1 rounded-full bg-blue-600 text-sm">
+                          {currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)}
+                        </span>
+                      )}
+                    </div>
                   </div>
+
                   <Link
                     to="/profile"
-                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-gray-700 flex items-center"
+                    className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-700 flex items-center"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <UserCircle className="h-5 w-5 mr-2" />
-                    Profile
+                    <User className="h-5 w-5 mr-2" />
+                    My Profile
                   </Link>
+                  
+                  <Link
+                    to="/profile#referral"
+                    className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-700 flex items-center"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Share2 className="h-5 w-5 mr-2" />
+                    Referrals ({userData?.referralCount || 0})
+                  </Link>
+                  
                   <button
                     onClick={() => {
                       handleLogout();

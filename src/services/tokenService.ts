@@ -2,6 +2,14 @@ import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, Time
 import { db } from './firebase';
 import { User, Quest, Feedback } from '../types/User';
 
+// Generate a unique referral ID
+const generateReferralId = (userId: string): string => {
+  // Use the first 6 characters of the user ID and add a random string
+  const prefix = userId.substring(0, 6);
+  const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `${prefix}-${randomStr}`;
+};
+
 // Get user data
 export const getUserData = async (userId: string): Promise<User | null> => {
   try {
@@ -31,12 +39,17 @@ export const createOrUpdateUser = async (user: Partial<User> & { uid: string }):
         updatedAt: Date.now(),
       });
     } else {
+      // Generate a referral ID for new users
+      const referralId = generateReferralId(user.uid);
+      
       // Create new user
       await setDoc(userRef, {
         email: user.email,
         displayName: user.displayName || '',
         photoURL: user.photoURL || '',
         tokens: 0,
+        referralId,
+        referralCount: 0,
         completedQuests: {},
         createdAt: Date.now(),
         updatedAt: Date.now(),
@@ -48,6 +61,48 @@ export const createOrUpdateUser = async (user: Partial<User> & { uid: string }):
     console.error('Error creating/updating user:', error);
     return false;
   }
+};
+
+// Process a referral
+export const processReferral = async (referralId: string, newUserId: string): Promise<boolean> => {
+  try {
+    // Find the user with this referral ID
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('referralId', '==', referralId));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      return false;
+    }
+    
+    // Get the referrer user
+    const referrerDoc = querySnapshot.docs[0];
+    const referrerId = referrerDoc.id;
+    const referrerData = referrerDoc.data() as User;
+    
+    // Update referrer with new count and reward tokens
+    await updateDoc(doc(db, 'users', referrerId), {
+      referralCount: (referrerData.referralCount || 0) + 1,
+      tokens: (referrerData.tokens || 0) + 50, // 50 tokens reward
+      updatedAt: Date.now()
+    });
+    
+    // Update the new user to include who referred them
+    await updateDoc(doc(db, 'users', newUserId), {
+      referredBy: referrerId,
+      updatedAt: Date.now()
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error processing referral:', error);
+    return false;
+  }
+};
+
+// Get referral link for a user
+export const getReferralLink = (referralId: string): string => {
+  return `${window.location.origin}/register?ref=${referralId}`;
 };
 
 // Add tokens to user
