@@ -1,6 +1,7 @@
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from './firebase';
 import { User, Quest, Feedback } from '../types/User';
+import { submitFeedbackToSupabase } from './supabase';
 
 // Generate a unique referral ID
 const generateReferralId = (userId: string): string => {
@@ -202,6 +203,7 @@ export const submitFeedback = async (userId: string, rating: number, comments?: 
       createdAt: Date.now()
     };
     
+    // Store feedback in Firebase
     await setDoc(doc(feedbackRef, feedback.id), feedback);
     
     // Update last feedback timestamp on user
@@ -213,6 +215,17 @@ export const submitFeedback = async (userId: string, rating: number, comments?: 
     
     // Add tokens reward for feedback (10 tokens)
     await addTokens(userId, 10);
+    
+    // Also store feedback in Supabase (don't wait for it to complete)
+    submitFeedbackToSupabase(feedback)
+      .then(success => {
+        if (!success) {
+          console.warn('Failed to store feedback in Supabase, but it was stored in Firebase');
+        }
+      })
+      .catch(error => {
+        console.error('Error storing feedback in Supabase:', error);
+      });
     
     return true;
   } catch (error) {
