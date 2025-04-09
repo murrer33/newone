@@ -11,13 +11,16 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
   const [comment, setComment] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
-  const { submitUserFeedback } = useToken();
+  const [error, setError] = useState<string | null>(null);
+  const { submitUserFeedback, isOffline } = useToken();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (rating === 0) return;
     
+    setError(null);
     setIsSubmitting(true);
+    
     try {
       const result = await submitUserFeedback(rating, comment);
       if (result) {
@@ -28,9 +31,12 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
           setRating(0);
           setComment('');
         }, 2000);
+      } else {
+        setError("Failed to submit feedback. Please try again later.");
       }
     } catch (error) {
       console.error('Error submitting feedback:', error);
+      setError("An error occurred while submitting feedback. Please try again later.");
     } finally {
       setIsSubmitting(false);
     }
@@ -63,6 +69,26 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
                 Please rate your experience and provide any feedback to help us improve.
                 You'll receive 10 tokens for completing this quick survey!
               </p>
+              
+              {isOffline && (
+                <div className="mb-4 p-3 bg-amber-100 text-amber-800 rounded-md flex items-start">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-sm">
+                    You're currently offline. Your feedback will be saved and submitted when you're back online.
+                  </span>
+                </div>
+              )}
+              
+              {error && (
+                <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md flex items-start">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-sm">{error}</span>
+                </div>
+              )}
               
               <form onSubmit={handleSubmit}>
                 <div className="mb-6">

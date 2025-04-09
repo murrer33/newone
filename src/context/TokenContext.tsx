@@ -14,6 +14,7 @@ interface TokenContextType {
   userData: User | null;
   quests: Quest[];
   loading: boolean;
+  isOffline: boolean;
   refreshUserData: () => Promise<void>;
   addUserTokens: (amount: number) => Promise<boolean>;
   completeUserQuest: (questId: string) => Promise<boolean>;
@@ -35,6 +36,21 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [userData, setUserData] = useState<User | null>(null);
   const [quests, setQuests] = useState<Quest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  // Monitor online/offline status
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Load user data when auth user changes
   useEffect(() => {
@@ -83,6 +99,13 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const interval = setInterval(loadQuests, 60 * 60 * 1000);
     return () => clearInterval(interval);
   }, [user]);
+
+  // Refresh user data when coming back online
+  useEffect(() => {
+    if (!isOffline && user && userData) {
+      refreshUserData();
+    }
+  }, [isOffline, user]);
 
   // Refresh user data function
   const refreshUserData = async () => {
@@ -134,6 +157,7 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     userData,
     quests,
     loading,
+    isOffline,
     refreshUserData,
     addUserTokens,
     completeUserQuest,
@@ -143,6 +167,14 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <TokenContext.Provider value={value}>
       {children}
+      {isOffline && (
+        <div className="fixed bottom-4 left-4 bg-amber-100 border border-amber-400 text-amber-800 px-4 py-2 rounded-md shadow-md z-50 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          You are currently offline. Some features may be limited.
+        </div>
+      )}
     </TokenContext.Provider>
   );
 };

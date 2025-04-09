@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Feedback } from '../types/User';
+import { Feedback, User } from '../types/User';
 
 // Define types for Supabase records
 interface SupabaseFeedback {
@@ -8,6 +8,22 @@ interface SupabaseFeedback {
   rating: number;
   comments: string;
   created_at: string;
+}
+
+interface SupabaseUser {
+  uid: string;
+  email: string;
+  display_name: string;
+  username: string;
+  photo_url: string;
+  tokens: number;
+  referral_id: string;
+  referred_by: string;
+  referral_count: number;
+  completed_quests: any;
+  last_feedback: number;
+  created_at: number;
+  updated_at: number;
 }
 
 // Initialize Supabase client
@@ -19,6 +35,154 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
+
+// User-related functions for Supabase fallback
+
+// Get user data from Supabase
+export const getUserDataFromSupabase = async (userId: string): Promise<User | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('uid', userId)
+      .single();
+      
+    if (error) {
+      console.error('Error fetching user from Supabase:', error);
+      return null;
+    }
+    
+    if (!data) return null;
+    
+    // Convert from Supabase format to our User format
+    const supaUser = data as SupabaseUser;
+    return {
+      uid: supaUser.uid,
+      email: supaUser.email,
+      displayName: supaUser.display_name,
+      username: supaUser.username,
+      photoURL: supaUser.photo_url,
+      tokens: supaUser.tokens,
+      referralId: supaUser.referral_id,
+      referredBy: supaUser.referred_by,
+      referralCount: supaUser.referral_count,
+      completedQuests: supaUser.completed_quests || {},
+      lastFeedback: supaUser.last_feedback,
+      createdAt: supaUser.created_at,
+      updatedAt: supaUser.updated_at
+    };
+  } catch (error) {
+    console.error('Exception fetching user from Supabase:', error);
+    return null;
+  }
+};
+
+// Create or update user in Supabase
+export const createOrUpdateUserInSupabase = async (user: Partial<User> & { uid: string }): Promise<boolean> => {
+  try {
+    // Check if user exists
+    const { data: existingUser, error: checkError } = await supabase
+      .from('users')
+      .select('uid')
+      .eq('uid', user.uid)
+      .single();
+      
+    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "Did not return a single row"
+      console.error('Error checking if user exists in Supabase:', checkError);
+      return false;
+    }
+    
+    const now = Date.now();
+    
+    if (existingUser) {
+      // Update existing user
+      const { error } = await supabase
+        .from('users')
+        .update({
+          email: user.email,
+          display_name: user.displayName || '',
+          username: user.username || '',
+          photo_url: user.photoURL || '',
+          updated_at: now
+        })
+        .eq('uid', user.uid);
+        
+      if (error) {
+        console.error('Error updating user in Supabase:', error);
+        return false;
+      }
+    } else {
+      // Create new user
+      // Generate username and referral ID if not provided
+      const username = user.username || (user.email ? user.email.split('@')[0] : `user${Math.floor(Math.random() * 10000)}`);
+      const referralId = user.referralId || `${user.uid.substring(0, 6)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      
+      const { error } = await supabase
+        .from('users')
+        .insert([{
+          uid: user.uid,
+          email: user.email,
+          display_name: user.displayName || '',
+          username: username,
+          photo_url: user.photoURL || '',
+          tokens: user.tokens || 0,
+          referral_id: referralId,
+          referral_count: user.referralCount || 0,
+          completed_quests: user.completedQuests || {},
+          created_at: now,
+          updated_at: now
+        }]);
+        
+      if (error) {
+        console.error('Error creating user in Supabase:', error);
+        return false;
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Exception in createOrUpdateUserInSupabase:', error);
+    return false;
+  }
+};
+
+// Add tokens to user in Supabase
+export const addTokensInSupabase = async (userId: string, amount: number): Promise<boolean> => {
+  try {
+    // Get current user to get current token count
+    const { data, error: fetchError } = await supabase
+      .from('users')
+      .select('tokens')
+      .eq('uid', userId)
+      .single();
+      
+    if (fetchError) {
+      console.error('Error fetching user tokens from Supabase:', fetchError);
+      return false;
+    }
+    
+    const currentTokens = data?.tokens || 0;
+    
+    // Update tokens
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({
+        tokens: currentTokens + amount,
+        updated_at: Date.now()
+      })
+      .eq('uid', userId);
+      
+    if (updateError) {
+      console.error('Error updating tokens in Supabase:', updateError);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Exception in addTokensInSupabase:', error);
+    return false;
+  }
+};
 
 // Submit feedback to Supabase
 export const submitFeedbackToSupabase = async (feedback: Feedback): Promise<boolean> => {

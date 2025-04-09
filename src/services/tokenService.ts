@@ -1,7 +1,20 @@
-import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, Timestamp, FirestoreError } from 'firebase/firestore';
+import { FirebaseError } from 'firebase/app';
 import { db } from './firebase';
 import { User, Quest, Feedback } from '../types/User';
-import { submitFeedbackToSupabase } from './supabase';
+import { 
+  submitFeedbackToSupabase, 
+  getUserDataFromSupabase, 
+  createOrUpdateUserInSupabase,
+  addTokensInSupabase
+} from './supabase';
+
+// Helper function to check if error is due to being offline
+const isOfflineError = (error: any): boolean => {
+  return error && 
+    (error instanceof FirebaseError || error instanceof FirestoreError) && 
+    (error.message.includes('offline') || error.code === 'unavailable');
+};
 
 // Generate a unique referral ID
 const generateReferralId = (userId: string): string => {
@@ -23,6 +36,13 @@ export const getUserData = async (userId: string): Promise<User | null> => {
     return null;
   } catch (error) {
     console.error('Error getting user data:', error);
+    
+    // If the error is due to being offline, try Supabase
+    if (isOfflineError(error)) {
+      console.log('Firebase offline, falling back to Supabase for user data');
+      return getUserDataFromSupabase(userId);
+    }
+    
     return null;
   }
 };
@@ -61,9 +81,22 @@ export const createOrUpdateUser = async (user: Partial<User> & { uid: string }):
         ...user
       });
     }
+    
+    // Also sync to Supabase for offline fallback
+    createOrUpdateUserInSupabase(user).catch(err => {
+      console.warn('Failed to sync user to Supabase:', err);
+    });
+    
     return true;
   } catch (error) {
     console.error('Error creating/updating user:', error);
+    
+    // If the error is due to being offline, try Supabase
+    if (isOfflineError(error)) {
+      console.log('Firebase offline, falling back to Supabase for user creation/update');
+      return createOrUpdateUserInSupabase(user);
+    }
+    
     return false;
   }
 };
@@ -101,6 +134,7 @@ export const processReferral = async (referralId: string, newUserId: string): Pr
     return true;
   } catch (error) {
     console.error('Error processing referral:', error);
+    // No Supabase fallback for this specific function as it's more complex
     return false;
   }
 };
@@ -122,11 +156,24 @@ export const addTokens = async (userId: string, amount: number): Promise<boolean
         tokens: (userData.tokens || 0) + amount,
         updatedAt: Date.now()
       });
+      
+      // Also sync to Supabase
+      addTokensInSupabase(userId, amount).catch(err => {
+        console.warn('Failed to sync tokens to Supabase:', err);
+      });
+      
       return true;
     }
     return false;
   } catch (error) {
     console.error('Error adding tokens:', error);
+    
+    // If the error is due to being offline, try Supabase
+    if (isOfflineError(error)) {
+      console.log('Firebase offline, falling back to Supabase for adding tokens');
+      return addTokensInSupabase(userId, amount);
+    }
+    
     return false;
   }
 };
@@ -145,6 +192,7 @@ export const getAvailableQuests = async (): Promise<Quest[]> => {
     } as Quest));
   } catch (error) {
     console.error('Error getting quests:', error);
+    // In offline mode, return empty array as quests are not critical
     return [];
   }
 };
@@ -191,6 +239,7 @@ export const completeQuest = async (userId: string, questId: string): Promise<bo
     return false;
   } catch (error) {
     console.error('Error completing quest:', error);
+    // No Supabase fallback for this as it's not critical
     return false;
   }
 };
@@ -220,7 +269,7 @@ export const submitFeedback = async (userId: string, rating: number, comments?: 
     // Add tokens reward for feedback (10 tokens)
     await addTokens(userId, 10);
     
-    // Also store feedback in Supabase (don't wait for it to complete)
+    // Also store feedback in Supabase
     submitFeedbackToSupabase(feedback)
       .then(success => {
         if (!success) {
@@ -234,6 +283,35 @@ export const submitFeedback = async (userId: string, rating: number, comments?: 
     return true;
   } catch (error) {
     console.error('Error submitting feedback:', error);
+    
+    // If the error is due to being offline, try Supabase
+    if (isOfflineError(error)) {
+      console.log('Firebase offline, falling back to Supabase for feedback submission');
+      
+      try {
+        // Directly submit to Supabase
+        const feedback: Feedback = {
+          id: `${userId}_${Date.now()}`,
+          userId,
+          rating,
+          comments,
+          createdAt: Date.now()
+        };
+        
+        const success = await submitFeedbackToSupabase(feedback);
+        
+        if (success) {
+          // Also try to add tokens via Supabase
+          await addTokensInSupabase(userId, 10);
+        }
+        
+        return success;
+      } catch (supabaseError) {
+        console.error('Supabase fallback also failed:', supabaseError);
+        return false;
+      }
+    }
+    
     return false;
   }
 }; 
