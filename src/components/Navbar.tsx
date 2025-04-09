@@ -47,9 +47,7 @@ const Navbar: React.FC = () => {
     { name: 'Pricing', path: '/pricing' },
     { name: 'FAQ', path: '/faq' },
     { name: 'About Us', path: '/about' },
-    { name: 'Contact Us', path: '/contact' },
-    { name: 'Register', path: '/register' },
-    { name: 'Login', path: '/login' }
+    { name: 'Contact Us', path: '/contact' }
   ];
 
   const authenticatedLinks = [
