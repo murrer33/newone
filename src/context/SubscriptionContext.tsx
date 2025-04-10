@@ -1,8 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getFirestore, doc, onSnapshot, setDoc } from 'firebase/firestore';
-import { db } from '../services/firebase';
 import { useAuth } from './AuthContext';
-import { getSubscriptionStatus, getSubscriptionPlanFeatures } from '../services/stripe';
+import { supabase } from '../services/supabaseClient';
 
 interface SubscriptionPlan {
   id: string;
@@ -67,26 +65,67 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       return;
     }
 
-    const unsubscribe = onSnapshot(
-      doc(db, 'subscriptions', user.uid),
-      (doc) => {
-        if (doc.exists()) {
-          const data = doc.data();
-          setCurrentPlan(data.planId);
+    // Set up subscription to listen for changes
+    const fetchSubscription = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('subscriptions')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching subscription:', error);
+          setError('Failed to fetch subscription status');
+          setIsLoading(false);
+          return;
+        }
+
+        if (data) {
+          setCurrentPlan(data.plan_id);
           setSubscriptionDetails(data);
         } else {
           setCurrentPlan(null);
           setSubscriptionDetails(null);
         }
         setIsLoading(false);
-      },
-      (err) => {
+      } catch (err) {
+        console.error('Exception fetching subscription:', err);
         setError('Failed to fetch subscription status');
         setIsLoading(false);
       }
-    );
+    };
 
-    return () => unsubscribe();
+    fetchSubscription();
+
+    // Set up real-time subscription updates
+    const subscription = supabase
+      .channel('subscriptions_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'subscriptions',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('Subscription changed:', payload);
+          if (payload.eventType === 'DELETE') {
+            setCurrentPlan(null);
+            setSubscriptionDetails(null);
+          } else {
+            const data = payload.new;
+            setCurrentPlan(data.plan_id);
+            setSubscriptionDetails(data);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
   }, [user]);
 
   const updateSubscription = async (planId: string) => {
@@ -97,16 +136,58 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     try {
       setError(null);
       
-      // Update subscription in Firestore
-      // This would typically be done by a server-side webhook from Stripe
-      // For testing purposes, we'll update it directly here
-      await setDoc(doc(db, 'subscriptions', user.uid), {
-        planId,
-        userId: user.uid,
-        status: 'active',
-        createdAt: new Date(),
-        currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
-      });
+      // Check if user already has a subscription
+      const { data: existingSub, error: fetchError } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = Not found
+        console.error('Error checking existing subscription:', fetchError);
+        throw new Error('Failed to check existing subscription');
+      }
+      
+      const currentDate = new Date();
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 30); // 30 days from now
+      
+      if (existingSub) {
+        // Update existing subscription
+        const { error: updateError } = await supabase
+          .from('subscriptions')
+          .update({
+            plan_id: planId,
+            status: 'active',
+            current_period_start: currentDate.toISOString(),
+            current_period_end: expiryDate.toISOString(),
+            updated_at: currentDate.toISOString()
+          })
+          .eq('id', existingSub.id);
+          
+        if (updateError) {
+          console.error('Error updating subscription:', updateError);
+          throw new Error('Failed to update subscription');
+        }
+      } else {
+        // Create new subscription
+        const { error: insertError } = await supabase
+          .from('subscriptions')
+          .insert([{
+            user_id: user.id,
+            plan_id: planId,
+            status: 'active',
+            current_period_start: currentDate.toISOString(),
+            current_period_end: expiryDate.toISOString(),
+            created_at: currentDate.toISOString(),
+            updated_at: currentDate.toISOString()
+          }]);
+          
+        if (insertError) {
+          console.error('Error creating subscription:', insertError);
+          throw new Error('Failed to create subscription');
+        }
+      }
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update subscription');
@@ -118,15 +199,14 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const checkFeatureAccess = (featureName: string) => {
     if (!currentPlan) return false;
     
-    // Get features for the current plan
-    const planFeatures = getSubscriptionPlanFeatures(currentPlan);
+    // Find the current plan in our list
+    const plan = subscriptionPlans.find(p => p.id === currentPlan);
+    if (!plan) return false;
     
     // Check if the requested feature is available in the user's plan
-    return Object.entries(planFeatures).some(([key, value]) => {
-      if (key === featureName) return !!value;
-      if (Array.isArray(value) && value.includes(featureName)) return true;
-      return false;
-    });
+    return plan.features.some(feature => 
+      feature.toLowerCase().includes(featureName.toLowerCase())
+    );
   };
 
   const value = {

@@ -8,7 +8,26 @@ if (!supabaseUrl || !supabaseKey) {
   console.error('Missing Supabase credentials. Make sure to set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file');
 }
 
+// Log connection details (without revealing the full key)
+console.log(`Connecting to Supabase at ${supabaseUrl}`);
+console.log(`API Key present: ${supabaseKey ? 'Yes' : 'No'}`);
+
 export const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Test the connection to check if it's working
+(async () => {
+  try {
+    const { data, error } = await supabase.from('users').select('count', { count: 'exact', head: true });
+    
+    if (error) {
+      console.error('Supabase connection test failed:', error);
+    } else {
+      console.log('Supabase connection test successful');
+    }
+  } catch (err) {
+    console.error('Supabase connection test exception:', err);
+  }
+})();
 
 // Auth methods
 export const signUp = async (email: string, password: string, displayName?: string): Promise<{
@@ -16,6 +35,8 @@ export const signUp = async (email: string, password: string, displayName?: stri
   error: Error | null;
 }> => {
   try {
+    console.log(`Attempting to sign up user with email: ${email}`);
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -26,14 +47,21 @@ export const signUp = async (email: string, password: string, displayName?: stri
       }
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Sign up error:', error);
+      throw error;
+    }
+
+    console.log('Sign up successful, user:', data.user?.id);
 
     // Create a new user entry in users table with default values
     if (data.user) {
-      await createUserProfile(data.user.id, {
+      const profileResult = await createUserProfile(data.user.id, {
         email: data.user.email || '',
         displayName: displayName || email.split('@')[0],
       });
+      
+      console.log('Profile creation result:', profileResult);
     }
 
     return { user: data.user, error: null };
@@ -48,13 +76,19 @@ export const signIn = async (email: string, password: string): Promise<{
   error: Error | null;
 }> => {
   try {
+    console.log(`Attempting to sign in user with email: ${email}`);
+    
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Sign in error:', error);
+      throw error;
+    }
 
+    console.log('Sign in successful, user:', data.user?.id);
     return { user: data.user, error: null };
   } catch (error) {
     console.error('Error signing in:', error);
@@ -136,6 +170,8 @@ export const createUserProfile = async (userId: string, userData: {
   photoURL?: string;
 }): Promise<boolean> => {
   try {
+    console.log(`Creating user profile for: ${userId}`);
+    
     // Generate username and referral ID
     const username = userData.displayName || userData.email.split('@')[0];
     const referralId = `${userId.substring(0, 6)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
@@ -161,6 +197,7 @@ export const createUserProfile = async (userId: string, userData: {
       return false;
     }
     
+    console.log('User profile created successfully');
     return true;
   } catch (error) {
     console.error('Error creating user profile:', error);
@@ -170,6 +207,8 @@ export const createUserProfile = async (userId: string, userData: {
 
 export const getUserProfile = async (userId: string) => {
   try {
+    console.log(`Fetching user profile for: ${userId}`);
+    
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -181,6 +220,7 @@ export const getUserProfile = async (userId: string) => {
       return null;
     }
     
+    console.log('User profile fetched successfully');
     return data;
   } catch (error) {
     console.error('Error fetching user profile:', error);
