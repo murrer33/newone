@@ -27,6 +27,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import UserProfile from "./pages/UserProfile";
 import AuthCallback from "./pages/AuthCallback";
 import ForgotPassword from "./pages/ForgotPassword";
+import DatabaseCheck from "./components/DatabaseCheck";
 
 function App() {
   return (
@@ -71,6 +72,9 @@ function App() {
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </main>
+                
+                {/* Database Check Component */}
+                <DatabaseCheck />
               </div>
             </StockProvider>
           </SubscriptionProvider>

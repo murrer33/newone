@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToken } from '../context/TokenContext';
 import FeedbackModal from '../components/FeedbackModal';
@@ -10,14 +10,30 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [verificationMessage, setVerificationMessage] = useState<string | null>(null);
+  
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login, loginWithGoogle, error: authError } = useAuth();
   const { userData, completeUserQuest } = useToken();
+
+  // Check for email verification success message
+  useEffect(() => {
+    const emailVerified = searchParams.get('email_confirmed');
+    if (emailVerified === 'true') {
+      setVerificationMessage('Your email has been verified! You can now log in.');
+    }
+  }, [searchParams]);
 
   // Set error from auth context
   useEffect(() => {
     if (authError) {
-      setError(authError);
+      const lowerCaseError = authError.toLowerCase();
+      if (lowerCaseError.includes('email not confirmed')) {
+        setError('Please verify your email before logging in. Check your inbox for a verification link.');
+      } else {
+        setError(authError);
+      }
     }
   }, [authError]);
 
@@ -47,13 +63,23 @@ const Login: React.FC = () => {
     e.preventDefault();
     try {
       setError(null);
+      setVerificationMessage(null);
       setLoading(true);
       const user = await login(email, password);
       if (user) {
         navigate('/');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign in');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to sign in';
+      
+      // Check for specific error conditions
+      if (errorMessage.toLowerCase().includes('invalid login credentials')) {
+        setError('Invalid email or password');
+      } else if (errorMessage.toLowerCase().includes('email not confirmed')) {
+        setError('Please verify your email before logging in. Check your inbox for a verification link.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -62,6 +88,7 @@ const Login: React.FC = () => {
   const handleGoogleSignIn = async () => {
     try {
       setError(null);
+      setVerificationMessage(null);
       setLoading(true);
       await loginWithGoogle();
       // The redirect will happen in the Supabase OAuth flow
@@ -85,6 +112,12 @@ const Login: React.FC = () => {
             </Link>
           </p>
         </div>
+
+        {verificationMessage && (
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
+            {verificationMessage}
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">

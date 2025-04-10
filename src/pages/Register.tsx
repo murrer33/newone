@@ -9,6 +9,7 @@ const Register: React.FC = () => {
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { register, loginWithGoogle, error: authError } = useAuth();
@@ -32,12 +33,22 @@ const Register: React.FC = () => {
       return;
     }
 
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
     try {
       setError(null);
       setLoading(true);
       const user = await register(email, password, displayName);
+      
       if (user) {
-        navigate('/');
+        console.log('User registered successfully');
+        setRegistrationSuccess(true);
+      } else if (!error) {
+        // If registration "succeeded" but no user returned, could be confirmation email
+        setRegistrationSuccess(true);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create an account');
@@ -57,6 +68,32 @@ const Register: React.FC = () => {
       setLoading(false);
     }
   };
+
+  if (registrationSuccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
+          <div className="text-center">
+            <svg className="mx-auto h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+              Registration Successful!
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-600">
+              Please check your email for a confirmation link to activate your account.
+            </p>
+            <Link 
+              to="/login" 
+              className="mt-6 block w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Return to Login
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">

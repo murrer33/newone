@@ -12,7 +12,54 @@ if (!supabaseUrl || !supabaseKey) {
 console.log(`Connecting to Supabase at ${supabaseUrl}`);
 console.log(`API Key present: ${supabaseKey ? 'Yes' : 'No'}`);
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// Create client with auto-retries
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'finpulses-web',
+    },
+    fetch: async (url, options = {}) => {
+      // Add retry logic for fetch
+      const MAX_RETRIES = 3;
+      let error = null;
+      
+      for (let i = 0; i < MAX_RETRIES; i++) {
+        try {
+          const response = await fetch(url, {
+            ...options,
+            headers: {
+              ...options.headers,
+              'Cache-Control': 'no-cache',
+            },
+          });
+          
+          if (response.status === 503 || response.status === 429) {
+            // Server busy or rate limit - wait and retry
+            const retryAfter = response.headers.get('Retry-After') || (2 ** i).toString();
+            console.log(`Request failed with ${response.status}, retrying in ${retryAfter}s (attempt ${i + 1}/${MAX_RETRIES})`);
+            await new Promise(r => setTimeout(r, parseInt(retryAfter) * 1000));
+            continue;
+          }
+          
+          return response;
+        } catch (err) {
+          console.error(`Fetch error (attempt ${i + 1}/${MAX_RETRIES}):`, err);
+          error = err;
+          
+          // Wait before retry
+          await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+        }
+      }
+      
+      throw error || new Error(`Failed to fetch after ${MAX_RETRIES} retries`);
+    }
+  }
+});
 
 // Test the connection to check if it's working
 (async () => {
@@ -37,13 +84,30 @@ export const signUp = async (email: string, password: string, displayName?: stri
   try {
     console.log(`Attempting to sign up user with email: ${email}`);
     
+    // First, check if the email already exists to provide a better error message
+    const { data: emailCheck, error: emailCheckError } = await supabase
+      .from('users')
+      .select('email')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (emailCheck) {
+      return { 
+        user: null, 
+        error: new Error('This email is already registered. Please login instead.') 
+      };
+    }
+    
+    // Perform the signup
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           display_name: displayName || email.split('@')[0],
-        }
+        },
+        // Do not redirect - we'll handle confirmations elsewhere
+        emailRedirectTo: `${window.location.origin}/auth/callback`
       }
     });
 
@@ -53,15 +117,23 @@ export const signUp = async (email: string, password: string, displayName?: stri
     }
 
     console.log('Sign up successful, user:', data.user?.id);
+    console.log('Email confirmation status:', data.user?.email_confirmed_at ? 'Confirmed' : 'Pending');
 
-    // Create a new user entry in users table with default values
+    // Only create profile if we have a user
     if (data.user) {
-      const profileResult = await createUserProfile(data.user.id, {
-        email: data.user.email || '',
-        displayName: displayName || email.split('@')[0],
-      });
-      
-      console.log('Profile creation result:', profileResult);
+      try {
+        const profileResult = await createUserProfile(data.user.id, {
+          email: data.user.email || '',
+          displayName: displayName || email.split('@')[0],
+        });
+        
+        console.log('Profile creation result:', profileResult);
+      } catch (profileError) {
+        console.error('Failed to create user profile, but user auth created:', profileError);
+        // Continue despite profile creation error - we can fix this later
+      }
+    } else {
+      console.warn('No user object returned from signup');
     }
 
     return { user: data.user, error: null };

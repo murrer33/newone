@@ -40,14 +40,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       
       try {
-        // Get current session
-        const { user, error } = await getCurrentUser();
+        // Get session from Supabase
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (error) {
-          throw error;
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          // Just log the error but don't throw - we want to continue even if session is missing
         }
         
-        if (user) {
+        // If we have a session, get the user
+        if (session) {
+          setUser(session.user);
+        } else {
+          // No session, try to get the user directly
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
+          
+          if (userError && userError.message !== 'Auth session missing') {
+            console.error('User error:', userError);
+          }
+          
           setUser(user);
         }
       } catch (err) {
@@ -62,6 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('Auth state changed:', _event, session?.user?.id);
       setUser(session?.user || null);
     });
     
@@ -114,12 +126,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     
     try {
+      console.log('Registering with:', email, displayName);
+      
       const { user, error } = await supabaseSignUp(email, password, displayName);
       
       if (error) {
+        console.error('Registration API error:', error);
         throw error;
       }
       
+      if (!user) {
+        throw new Error('Registration successful, but no user returned');
+      }
+      
+      console.log('Registration successful, user created:', user.id);
       setUser(user);
       return user;
     } catch (err) {
