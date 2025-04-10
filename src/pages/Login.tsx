@@ -11,8 +11,15 @@ const Login: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const navigate = useNavigate();
-  const { signIn, signInWithGoogle } = useAuth();
+  const { login, loginWithGoogle, error: authError } = useAuth();
   const { userData, completeUserQuest } = useToken();
+
+  // Set error from auth context
+  useEffect(() => {
+    if (authError) {
+      setError(authError);
+    }
+  }, [authError]);
 
   // Check if feedback should be shown (less than 7 days since last feedback)
   useEffect(() => {
@@ -41,8 +48,10 @@ const Login: React.FC = () => {
     try {
       setError(null);
       setLoading(true);
-      await signIn(email, password);
-      navigate('/');
+      const user = await login(email, password);
+      if (user) {
+        navigate('/');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in');
     } finally {
@@ -54,11 +63,10 @@ const Login: React.FC = () => {
     try {
       setError(null);
       setLoading(true);
-      await signInWithGoogle();
-      navigate('/');
+      await loginWithGoogle();
+      // The redirect will happen in the Supabase OAuth flow
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in with Google');
-    } finally {
       setLoading(false);
     }
   };
@@ -117,6 +125,14 @@ const Login: React.FC = () => {
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Password"
               />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="text-sm">
+              <Link to="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
+                Forgot your password?
+              </Link>
             </div>
           </div>
 

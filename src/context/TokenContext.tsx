@@ -2,13 +2,10 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Quest } from '../types/User';
 import { useAuth } from './AuthContext';
 import { 
-  getUserData, 
-  createOrUpdateUser, 
-  addTokens, 
-  getAvailableQuests, 
-  completeQuest,
-  submitFeedback
-} from '../services/tokenService';
+  createUserProfile,
+  getUserProfile
+} from '../services/supabaseClient';
+import { supabase } from '../services/supabaseClient';
 
 interface TokenContextType {
   userData: User | null;
@@ -57,22 +54,52 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const loadUserData = async () => {
       if (user) {
         setLoading(true);
-        const data = await getUserData(user.uid);
+        const data = await getUserProfile(user.id);
         
         if (data) {
-          setUserData(data);
+          // Convert from Supabase format to our User format
+          setUserData({
+            uid: data.uid,
+            email: data.email,
+            displayName: data.display_name,
+            username: data.username,
+            photoURL: data.photo_url,
+            tokens: data.tokens,
+            referralId: data.referral_id,
+            referredBy: data.referred_by,
+            referralCount: data.referral_count,
+            completedQuests: data.completed_quests || {},
+            lastFeedback: data.last_feedback,
+            createdAt: data.created_at,
+            updatedAt: data.updated_at
+          });
         } else {
           // Create user if not exists
-          await createOrUpdateUser({
-            uid: user.uid,
+          await createUserProfile(user.id, {
             email: user.email || '',
-            displayName: user.displayName || '',
-            photoURL: user.photoURL || '',
+            displayName: user.user_metadata?.display_name || '',
+            photoURL: user.user_metadata?.avatar_url || '',
           });
           
           // Fetch again after creation
-          const newData = await getUserData(user.uid);
-          setUserData(newData);
+          const newData = await getUserProfile(user.id);
+          if (newData) {
+            setUserData({
+              uid: newData.uid,
+              email: newData.email,
+              displayName: newData.display_name,
+              username: newData.username,
+              photoURL: newData.photo_url,
+              tokens: newData.tokens,
+              referralId: newData.referral_id,
+              referredBy: newData.referred_by,
+              referralCount: newData.referral_count,
+              completedQuests: newData.completed_quests || {},
+              lastFeedback: newData.last_feedback,
+              createdAt: newData.created_at,
+              updatedAt: newData.updated_at
+            });
+          }
         }
         
         setLoading(false);
@@ -88,8 +115,34 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const loadQuests = async () => {
       if (user) {
-        const availableQuests = await getAvailableQuests();
-        setQuests(availableQuests);
+        try {
+          const now = Date.now();
+          const { data, error } = await supabase
+            .from('quests')
+            .select('*')
+            .gt('expires_at', now);
+          
+          if (error) {
+            console.error('Error fetching quests:', error);
+            return;
+          }
+          
+          if (data) {
+            const formattedQuests: Quest[] = data.map(quest => ({
+              id: quest.id,
+              title: quest.title,
+              description: quest.description,
+              tokenReward: quest.token_reward,
+              type: quest.type,
+              requirement: quest.requirement,
+              expiresAt: quest.expires_at
+            }));
+            
+            setQuests(formattedQuests);
+          }
+        } catch (error) {
+          console.error('Error loading quests:', error);
+        }
       }
     };
     
@@ -110,9 +163,23 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Refresh user data function
   const refreshUserData = async () => {
     if (user) {
-      const data = await getUserData(user.uid);
+      const data = await getUserProfile(user.id);
       if (data) {
-        setUserData(data);
+        setUserData({
+          uid: data.uid,
+          email: data.email,
+          displayName: data.display_name,
+          username: data.username,
+          photoURL: data.photo_url,
+          tokens: data.tokens,
+          referralId: data.referral_id,
+          referredBy: data.referred_by,
+          referralCount: data.referral_count,
+          completedQuests: data.completed_quests || {},
+          lastFeedback: data.last_feedback,
+          createdAt: data.created_at,
+          updatedAt: data.updated_at
+        });
       }
     }
   };
@@ -120,11 +187,34 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Add tokens to user
   const addUserTokens = async (amount: number) => {
     if (user) {
-      const success = await addTokens(user.uid, amount);
-      if (success) {
+      try {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('tokens')
+          .eq('uid', user.id)
+          .single();
+        
+        if (!userData) return false;
+        
+        const { error } = await supabase
+          .from('users')
+          .update({ 
+            tokens: userData.tokens + amount,
+            updated_at: Date.now()
+          })
+          .eq('uid', user.id);
+        
+        if (error) {
+          console.error('Error adding tokens:', error);
+          return false;
+        }
+        
         await refreshUserData();
+        return true;
+      } catch (error) {
+        console.error('Error adding tokens:', error);
+        return false;
       }
-      return success;
     }
     return false;
   };
@@ -132,11 +222,55 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Complete a quest
   const completeUserQuest = async (questId: string) => {
     if (user) {
-      const success = await completeQuest(user.uid, questId);
-      if (success) {
+      try {
+        // Get current user data and quest data
+        const [userData, questData] = await Promise.all([
+          supabase.from('users').select('*').eq('uid', user.id).single(),
+          supabase.from('quests').select('*').eq('id', questId).single()
+        ]);
+        
+        if (userData.error || questData.error) {
+          console.error('Error fetching data:', userData.error || questData.error);
+          return false;
+        }
+        
+        const userCompleted = userData.data.completed_quests || {};
+        
+        // Check if quest was already completed and rewarded
+        if (userCompleted[questId]?.rewarded) {
+          return false;
+        }
+        
+        // Mark quest as completed
+        const completedQuests = {
+          ...userCompleted,
+          [questId]: {
+            completedAt: Date.now(),
+            rewarded: true
+          }
+        };
+        
+        // Add tokens to user
+        const { error } = await supabase
+          .from('users')
+          .update({
+            completed_quests: completedQuests,
+            tokens: userData.data.tokens + questData.data.token_reward,
+            updated_at: Date.now()
+          })
+          .eq('uid', user.id);
+        
+        if (error) {
+          console.error('Error completing quest:', error);
+          return false;
+        }
+        
         await refreshUserData();
+        return true;
+      } catch (error) {
+        console.error('Error completing quest:', error);
+        return false;
       }
-      return success;
     }
     return false;
   };
@@ -144,11 +278,46 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Submit feedback
   const submitUserFeedback = async (rating: number, comments?: string) => {
     if (user) {
-      const success = await submitFeedback(user.uid, rating, comments);
-      if (success) {
-        await refreshUserData();
+      try {
+        const feedback = {
+          id: `${user.id}_${Date.now()}`,
+          user_id: user.id,
+          rating,
+          comments: comments || '',
+          created_at: new Date().toISOString()
+        };
+        
+        // Store feedback in Supabase
+        const { error: feedbackError } = await supabase
+          .from('feedbacks')
+          .insert([feedback]);
+        
+        if (feedbackError) {
+          console.error('Error submitting feedback:', feedbackError);
+          return false;
+        }
+        
+        // Update last feedback timestamp on user
+        const { error: userError } = await supabase
+          .from('users')
+          .update({
+            last_feedback: Date.now(),
+            updated_at: Date.now()
+          })
+          .eq('uid', user.id);
+        
+        if (userError) {
+          console.error('Error updating user feedback timestamp:', userError);
+        }
+        
+        // Add tokens reward for feedback (10 tokens)
+        await addUserTokens(10);
+        
+        return true;
+      } catch (error) {
+        console.error('Error submitting feedback:', error);
+        return false;
       }
-      return success;
     }
     return false;
   };

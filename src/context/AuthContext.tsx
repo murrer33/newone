@@ -1,23 +1,22 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 import { 
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithPopup,
-  User
-} from 'firebase/auth';
-import { auth } from '../services/firebase';
+  supabase, 
+  signIn as supabaseSignIn, 
+  signInWithGoogle as supabaseSignInWithGoogle,
+  signUp as supabaseSignUp,
+  signOut as supabaseSignOut,
+  getCurrentUser
+} from '../services/supabaseClient';
 
 interface AuthContextType {
-  user: User | null;
+  user: SupabaseUser | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
   error: string | null;
+  login: (email: string, password: string) => Promise<SupabaseUser | null>;
+  loginWithGoogle: () => Promise<void>;
+  register: (email: string, password: string, displayName?: string) => Promise<SupabaseUser | null>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,110 +30,141 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [inactivityTimer, setInactivityTimer] = useState<NodeJS.Timeout | null>(null);
 
+  // Initialize auth state
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  // Auto logout after 30 minutes of inactivity
-  const resetInactivityTimer = () => {
-    if (inactivityTimer) {
-      clearTimeout(inactivityTimer);
-    }
-    
-    const newTimer = setTimeout(() => {
-      logout();
-    }, 30 * 60 * 1000); // 30 minutes
-    
-    setInactivityTimer(newTimer);
-  };
-
-  useEffect(() => {
-    if (user) {
-      // Set up activity listeners
-      const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
-      events.forEach(event => {
-        window.addEventListener(event, resetInactivityTimer);
-      });
-
-      // Initial timer
-      resetInactivityTimer();
-
-      // Cleanup
-      return () => {
-        events.forEach(event => {
-          window.removeEventListener(event, resetInactivityTimer);
-        });
-        if (inactivityTimer) {
-          clearTimeout(inactivityTimer);
+    const initAuth = async () => {
+      setLoading(true);
+      
+      try {
+        // Get current session
+        const { user, error } = await getCurrentUser();
+        
+        if (error) {
+          throw error;
         }
-      };
-    }
-  }, [user]);
-
-  const signIn = async (email: string, password: string) => {
+        
+        if (user) {
+          setUser(user);
+        }
+      } catch (err) {
+        console.error('Error initializing auth:', err);
+        setError(err instanceof Error ? err.message : 'Authentication error');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    initAuth();
+    
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+  
+  // Login with email and password
+  const login = async (email: string, password: string): Promise<SupabaseUser | null> => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      setError(null);
-      await signInWithEmailAndPassword(auth, email, password);
+      const { user, error } = await supabaseSignIn(email, password);
+      
+      if (error) {
+        throw error;
+      }
+      
+      setUser(user);
+      return user;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during sign in');
-      throw err;
+      console.error('Login error:', err);
+      setError(err instanceof Error ? err.message : 'Login failed');
+      return null;
+    } finally {
+      setLoading(false);
     }
   };
-
-  const signUp = async (email: string, password: string) => {
+  
+  // Login with Google
+  const loginWithGoogle = async (): Promise<void> => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      setError(null);
-      await createUserWithEmailAndPassword(auth, email, password);
+      await supabaseSignInWithGoogle();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during sign up');
-      throw err;
+      console.error('Google login error:', err);
+      setError(err instanceof Error ? err.message : 'Google login failed');
+    } finally {
+      setLoading(false);
     }
   };
-
-  const signInWithGoogle = async () => {
+  
+  // Register with email and password
+  const register = async (email: string, password: string, displayName?: string): Promise<SupabaseUser | null> => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      setError(null);
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const { user, error } = await supabaseSignUp(email, password, displayName);
+      
+      if (error) {
+        throw error;
+      }
+      
+      setUser(user);
+      return user;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during Google sign in');
-      throw err;
+      console.error('Registration error:', err);
+      setError(err instanceof Error ? err.message : 'Registration failed');
+      return null;
+    } finally {
+      setLoading(false);
     }
   };
-
-  const logout = async () => {
+  
+  // Logout
+  const logout = async (): Promise<void> => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      setError(null);
-      await signOut(auth);
+      const { error } = await supabaseSignOut();
+      
+      if (error) {
+        throw error;
+      }
+      
+      setUser(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during logout');
-      throw err;
+      console.error('Logout error:', err);
+      setError(err instanceof Error ? err.message : 'Logout failed');
+    } finally {
+      setLoading(false);
     }
   };
-
+  
   const value = {
     user,
     loading,
-    signIn,
-    signUp,
-    logout,
-    signInWithGoogle,
-    error
+    error,
+    login,
+    loginWithGoogle,
+    register,
+    logout
   };
-
+  
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
