@@ -1,63 +1,30 @@
 import { createClient, SupabaseClient, User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 // Initialize Supabase client
+// Make absolutely sure we're not using a hardcoded URL
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// Debug log to see what values are actually being used
+console.log('Supabase Connection Info (masked):');
+console.log(`URL: ${supabaseUrl}`);
+console.log(`Key present: ${supabaseKey ? 'Yes (length: ' + supabaseKey.length + ')' : 'No'}`);
 
 if (!supabaseUrl || !supabaseKey) {
   console.error('Missing Supabase credentials. Make sure to set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file');
 }
 
-// Log connection details (without revealing the full key)
-console.log(`Connecting to Supabase at ${supabaseUrl}`);
-console.log(`API Key present: ${supabaseKey ? 'Yes' : 'No'}`);
+// Validate URL is not a placeholder
+if (supabaseUrl.includes('your-supabase-project-url') || supabaseUrl.includes('your-project-id')) {
+  console.error('Invalid Supabase URL detected. Please update your .env file with the actual Supabase URL.');
+}
 
-// Create client with auto-retries
+// Create client with basic configuration
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true
-  },
-  global: {
-    headers: {
-      'X-Client-Info': 'finpulses-web',
-    },
-    fetch: async (url, options = {}) => {
-      // Add retry logic for fetch
-      const MAX_RETRIES = 3;
-      let error = null;
-      
-      for (let i = 0; i < MAX_RETRIES; i++) {
-        try {
-          const response = await fetch(url, {
-            ...options,
-            headers: {
-              ...options.headers,
-              'Cache-Control': 'no-cache',
-            },
-          });
-          
-          if (response.status === 503 || response.status === 429) {
-            // Server busy or rate limit - wait and retry
-            const retryAfter = response.headers.get('Retry-After') || (2 ** i).toString();
-            console.log(`Request failed with ${response.status}, retrying in ${retryAfter}s (attempt ${i + 1}/${MAX_RETRIES})`);
-            await new Promise(r => setTimeout(r, parseInt(retryAfter) * 1000));
-            continue;
-          }
-          
-          return response;
-        } catch (err) {
-          console.error(`Fetch error (attempt ${i + 1}/${MAX_RETRIES}):`, err);
-          error = err;
-          
-          // Wait before retry
-          await new Promise(r => setTimeout(r, 1000 * (i + 1)));
-        }
-      }
-      
-      throw error || new Error(`Failed to fetch after ${MAX_RETRIES} retries`);
-    }
   }
 });
 
@@ -200,7 +167,16 @@ export const getCurrentUser = async (): Promise<{
 }> => {
   try {
     const { data, error } = await supabase.auth.getUser();
-    if (error) throw error;
+    
+    if (error) {
+      // Handle specific error for missing auth session
+      if (error.message.includes('Auth session missing')) {
+        console.warn('Auth session missing, user is not logged in');
+        return { user: null, error: null }; // Return null user but no error
+      }
+      throw error;
+    }
+    
     return { user: data.user, error: null };
   } catch (error) {
     console.error('Error getting current user:', error);
@@ -214,7 +190,16 @@ export const getSession = async (): Promise<{
 }> => {
   try {
     const { data, error } = await supabase.auth.getSession();
-    if (error) throw error;
+    
+    if (error) {
+      // Handle session missing error gracefully
+      if (error.message.includes('Auth session missing')) {
+        console.warn('Auth session missing, user needs to log in');
+        return { session: null, error: null }; // Return null session but no error
+      }
+      throw error;
+    }
+    
     return { session: data.session, error: null };
   } catch (error) {
     console.error('Error getting session:', error);
