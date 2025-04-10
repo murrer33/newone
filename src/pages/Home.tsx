@@ -4,8 +4,40 @@ import { TrendingUp, Award, Shield, Zap } from 'lucide-react';
 import { useSubscription } from '../context/SubscriptionContext';
 import { supabase } from '../services/supabaseClient';
 
+// Fallback plans in case the subscription context isn't available
+const fallbackPlans = [
+  {
+    id: 'basic',
+    name: 'Basic Plan',
+    price: 9.99,
+    features: ['Basic stock analysis', 'Daily market updates', 'Limited API calls', 'Email support']
+  },
+  {
+    id: 'intermediate',
+    name: 'Intermediate Plan',
+    price: 19.99,
+    features: ['Advanced stock analysis', 'Real-time market data', 'Technical indicators', 'Portfolio tracking', 'Priority email support']
+  },
+  {
+    id: 'advanced',
+    name: 'Advanced Plan',
+    price: 29.99,
+    features: ['Premium stock analysis', 'AI predictions', 'Unlimited API calls', 'Priority support', 'Custom alerts', 'Sentiment analysis', 'Market insights']
+  }
+];
+
 const Home: React.FC = () => {
-  const { subscriptionPlans } = useSubscription();
+  // Try to get subscription plans from context, fall back to local data if error
+  let subscriptionPlans = fallbackPlans;
+  try {
+    const { subscriptionPlans: contextPlans } = useSubscription();
+    if (contextPlans && contextPlans.length > 0) {
+      subscriptionPlans = contextPlans;
+    }
+  } catch (error) {
+    console.warn('Subscription context not available, using fallback plans');
+  }
+
   const [showWaitlistForm, setShowWaitlistForm] = useState(false);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');

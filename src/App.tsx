@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { AuthProvider } from "./context/AuthContext";
 import { TokenProvider } from "./context/TokenContext";
 import { StockProvider } from "./context/StockContext";
+import { SubscriptionProvider } from "./context/SubscriptionContext";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -43,77 +44,79 @@ function App() {
         <AuthProvider>
           <TokenProvider>
             <StockProvider>
-              {/* Database check component to verify Supabase tables */}
-              <DatabaseCheck />
-              
-              <div className="min-h-screen bg-gray-100">
-                <Routes>
-                  {/* Public Routes - Accessible without authentication */}
-                  <Route path="/home" element={<Home />} />
-                  <Route path="/waitlist" element={<WaitlistPage />} />
-                  <Route path="/" element={<Home />} />
+              <SubscriptionProvider>
+                {/* Database check component to verify Supabase tables */}
+                <DatabaseCheck />
+                
+                <div className="min-h-screen bg-gray-100">
+                  <Routes>
+                    {/* Public Routes - Accessible without authentication */}
+                    <Route path="/home" element={<Home />} />
+                    <Route path="/waitlist" element={<WaitlistPage />} />
+                    <Route path="/" element={<Home />} />
 
-                  {/* Auth Routes */}
-                  <Route path="/login" element={<Login />} />
-                  {/* Disable Register route and redirect to waitlist */}
-                  <Route path="/register" element={<Navigate to="/waitlist" replace />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                    {/* Auth Routes */}
+                    <Route path="/login" element={<Login />} />
+                    {/* Disable Register route and redirect to waitlist */}
+                    <Route path="/register" element={<Navigate to="/waitlist" replace />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
 
-                  {/* Payment Routes */}
-                  <Route path="/payment-success" element={<PrivateRoute><PaymentSuccess /></PrivateRoute>} />
+                    {/* Payment Routes */}
+                    <Route path="/payment-success" element={<PrivateRoute><PaymentSuccess /></PrivateRoute>} />
 
-                  {/* Protected Routes */}
-                  <Route path="/dashboard" element={
-                    <PrivateRoute>
-                      <WaitlistWrapper>
-                        <Dashboard />
-                      </WaitlistWrapper>
-                    </PrivateRoute>
-                  } />
-                  <Route path="/market" element={
-                    <PrivateRoute>
-                      <WaitlistWrapper>
-                        <MarketPage />
-                      </WaitlistWrapper>
-                    </PrivateRoute>
-                  } />
-                  <Route path="/stock/:symbol" element={
-                    <PrivateRoute>
-                      <WaitlistWrapper>
-                        <StockPage />
-                      </WaitlistWrapper>
-                    </PrivateRoute>
-                  } />
-                  <Route path="/watchlist" element={
-                    <PrivateRoute>
-                      <WaitlistWrapper>
-                        <Watchlist />
-                      </WaitlistWrapper>
-                    </PrivateRoute>
-                  } />
-                  <Route path="/screener" element={
-                    <PrivateRoute>
-                      <WaitlistWrapper>
-                        <Screener />
-                      </WaitlistWrapper>
-                    </PrivateRoute>
-                  } />
-                  <Route path="/economic-news" element={
-                    <PrivateRoute>
-                      <WaitlistWrapper>
-                        <EconomicalNews />
-                      </WaitlistWrapper>
-                    </PrivateRoute>
-                  } />
-                  <Route path="/profile" element={
-                    <PrivateRoute>
-                      <WaitlistWrapper>
-                        <UserProfile />
-                      </WaitlistWrapper>
-                    </PrivateRoute>
-                  } />
-                </Routes>
-              </div>
+                    {/* Protected Routes */}
+                    <Route path="/dashboard" element={
+                      <PrivateRoute>
+                        <WaitlistWrapper>
+                          <Dashboard />
+                        </WaitlistWrapper>
+                      </PrivateRoute>
+                    } />
+                    <Route path="/market" element={
+                      <PrivateRoute>
+                        <WaitlistWrapper>
+                          <MarketPage />
+                        </WaitlistWrapper>
+                      </PrivateRoute>
+                    } />
+                    <Route path="/stock/:symbol" element={
+                      <PrivateRoute>
+                        <WaitlistWrapper>
+                          <StockPage />
+                        </WaitlistWrapper>
+                      </PrivateRoute>
+                    } />
+                    <Route path="/watchlist" element={
+                      <PrivateRoute>
+                        <WaitlistWrapper>
+                          <Watchlist />
+                        </WaitlistWrapper>
+                      </PrivateRoute>
+                    } />
+                    <Route path="/screener" element={
+                      <PrivateRoute>
+                        <WaitlistWrapper>
+                          <Screener />
+                        </WaitlistWrapper>
+                      </PrivateRoute>
+                    } />
+                    <Route path="/economic-news" element={
+                      <PrivateRoute>
+                        <WaitlistWrapper>
+                          <EconomicalNews />
+                        </WaitlistWrapper>
+                      </PrivateRoute>
+                    } />
+                    <Route path="/profile" element={
+                      <PrivateRoute>
+                        <WaitlistWrapper>
+                          <UserProfile />
+                        </WaitlistWrapper>
+                      </PrivateRoute>
+                    } />
+                  </Routes>
+                </div>
+              </SubscriptionProvider>
             </StockProvider>
           </TokenProvider>
         </AuthProvider>
