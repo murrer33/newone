@@ -91,13 +91,13 @@ const Home: React.FC = () => {
               <>
                 <button
                   onClick={() => setShowWaitlistForm(true)}
-                  className="bg-white text-blue-600 hover:bg-blue-50 font-medium py-3 px-6 rounded-lg shadow-md transition duration-200"
+                  className="px-8 py-3 text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10"
                 >
                   Join Waitlist
                 </button>
                 <Link
                   to="/login"
-                  className="border border-white bg-transparent hover:bg-white/10 font-medium py-3 px-6 rounded-lg transition duration-200"
+                  className="px-8 py-3 text-base font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
                 >
                   Sign In
                 </Link>
@@ -208,7 +208,7 @@ const Home: React.FC = () => {
                       setPreferredPlan(plan.id.toString());
                       setShowWaitlistForm(true);
                     }}
-                    className="w-full py-2 px-4 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition"
+                    className="mt-8 block w-full bg-blue-600 text-white rounded-md py-2 font-medium text-center hover:bg-blue-700"
                   >
                     Join Waitlist
                   </button>
@@ -241,7 +241,7 @@ const Home: React.FC = () => {
             <div className="inline-flex rounded-md shadow">
               <button
                 onClick={() => setShowWaitlistForm(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg transition duration-300"
+                className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50"
               >
                 Join Waitlist
               </button>
