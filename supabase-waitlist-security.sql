@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS public.waitlist (
   joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   referral_code TEXT UNIQUE,
   referred_by TEXT,
+  preferred_plan TEXT DEFAULT '1',
   processed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -133,4 +134,22 @@ BEGIN
     RETURN FALSE;
   END IF;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER; 
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create an admin view for waitlist management
+CREATE OR REPLACE VIEW admin_waitlist_view AS
+SELECT 
+  w.id,
+  w.email,
+  w.name,
+  w.preferred_plan,
+  w.joined_at,
+  w.referral_code,
+  w.referred_by,
+  w.processed,
+  w.created_at,
+  p.name as plan_name,
+  p.price as plan_price
+FROM public.waitlist w
+LEFT JOIN public.plans p ON w.preferred_plan = p.id
+ORDER BY w.joined_at ASC; 
