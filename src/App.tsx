@@ -1,86 +1,128 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { StockProvider } from "./context/StockContext";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-import { SubscriptionProvider } from "./context/SubscriptionContext";
 import { TokenProvider } from "./context/TokenContext";
-import Navbar from "./components/Navbar";
-import Dashboard from "./pages/Dashboard";
-import MarketPage from "./pages/MarketPage";
-import StockDetail from "./pages/StockDetail";
-import Watchlist from "./pages/Watchlist";
-import Screener from "./pages/Screener";
-import StockPage from "./pages/StockPage";
-import PopularStocks from "./pages/PopularStocks";
-import TrendingStocks from "./pages/TrendingStocks";
-import StockComparison from "./pages/StockComparison";
-import EconomicalNews from "./pages/EconomicalNews";
+import { StockProvider } from "./context/StockContext";
+import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Pricing from "./pages/Pricing";
-import FAQ from "./pages/FAQ";
-import AboutUs from "./pages/AboutUs";
-import ContactUs from "./pages/ContactUs";
-import Home from "./pages/Home";
-import PaymentSuccess from "./pages/PaymentSuccess";
+import Dashboard from "./pages/Dashboard";
+import StockPage from "./pages/StockPage";
+import MarketPage from "./pages/MarketPage";
 import PrivateRoute from "./components/PrivateRoute";
+import Watchlist from "./pages/Watchlist";
+import Screener from "./pages/Screener";
+import EconomicalNews from "./pages/EconomicalNews";
 import UserProfile from "./pages/UserProfile";
-import AuthCallback from "./pages/AuthCallback";
 import ForgotPassword from "./pages/ForgotPassword";
 import DatabaseCheck from "./components/DatabaseCheck";
+import { useWaitlistCheck } from './utils/waitlistCheck';
+import WaitlistPage from './pages/WaitlistPage';
+import PaymentSuccess from "./pages/PaymentSuccess";
+
+const WaitlistWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Use the waitlist check hook to handle redirects
+  const { isWaitlisted, isLoading } = useWaitlistCheck();
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+  
+  // Render children directly - redirects are handled by the hook
+  return <>{children}</>;
+};
 
 function App() {
   return (
+    <>
     <Router>
       <AuthProvider>
-        <TokenProvider>
-          <SubscriptionProvider>
-            <StockProvider>
-              <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
-                <Navbar />
-                <main className="container mx-auto px-4 py-8">
-                  <Routes>
-                    {/* Public Routes */}
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/forgot-password" element={<ForgotPassword />} />
-                    <Route path="/auth/callback" element={<AuthCallback />} />
-                    <Route path="/pricing" element={<Pricing />} />
-                    <Route path="/faq" element={<FAQ />} />
-                    <Route path="/about" element={<AboutUs />} />
-                    <Route path="/contact" element={<ContactUs />} />
-                    <Route path="/home" element={<Home />} />
-                    
-                    {/* Payment Routes */}
-                    <Route path="/payment-success" element={<PrivateRoute><PaymentSuccess /></PrivateRoute>} />
+          <TokenProvider>
+          <StockProvider>
+              {/* Database check component to verify Supabase tables */}
+              <DatabaseCheck />
+              
+              <div className="min-h-screen bg-gray-100">
+                <Routes>
+                  {/* Auth Routes */}
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/home" element={<Home />} />
+                  
+                  {/* Payment Routes */}
+                  <Route path="/payment-success" element={<PrivateRoute><PaymentSuccess /></PrivateRoute>} />
 
-                    {/* Conditional Home Route */}
-                    <Route path="/" element={<PrivateRoute redirectTo="/home" fallback={<Home />}><Dashboard /></PrivateRoute>} />
+                  {/* Waitlist page (accessible to all authenticated users) */}
+                  <Route path="/waitlist" element={
+                    <PrivateRoute>
+                      <WaitlistPage />
+                    </PrivateRoute>
+                  } />
 
-                    {/* Protected Routes */}
-                    <Route path="/market" element={<PrivateRoute><MarketPage /></PrivateRoute>} />
-                    <Route path="/stock/:symbol" element={<PrivateRoute><StockPage /></PrivateRoute>} />
-                    <Route path="/watchlist" element={<PrivateRoute><Watchlist /></PrivateRoute>} />
-                    <Route path="/screener" element={<PrivateRoute><Screener /></PrivateRoute>} />
-                    <Route path="/popular-stocks" element={<PrivateRoute><PopularStocks /></PrivateRoute>} />
-                    <Route path="/trending-stocks" element={<PrivateRoute><TrendingStocks /></PrivateRoute>} />
-                    <Route path="/compare-stocks" element={<PrivateRoute><StockComparison /></PrivateRoute>} />
-                    <Route path="/economic-news" element={<PrivateRoute><EconomicalNews /></PrivateRoute>} />
-                    <Route path="/profile" element={<PrivateRoute><UserProfile /></PrivateRoute>} />
+                  {/* Conditional Home Route */}
+                  <Route path="/" element={
+                    <PrivateRoute>
+                      <WaitlistWrapper>
+                        <Dashboard />
+                      </WaitlistWrapper>
+                    </PrivateRoute>
+                  } />
 
-                    {/* Fallback Route */}
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
-                </main>
-                
-                {/* Database Check Component */}
-                <DatabaseCheck />
-              </div>
-            </StockProvider>
-          </SubscriptionProvider>
-        </TokenProvider>
+                  {/* Protected Routes */}
+                  <Route path="/market" element={
+                    <PrivateRoute>
+                      <WaitlistWrapper>
+                        <MarketPage />
+                      </WaitlistWrapper>
+                    </PrivateRoute>
+                  } />
+                  <Route path="/stock/:symbol" element={
+                    <PrivateRoute>
+                      <WaitlistWrapper>
+                        <StockPage />
+                      </WaitlistWrapper>
+                    </PrivateRoute>
+                  } />
+                  <Route path="/watchlist" element={
+                    <PrivateRoute>
+                      <WaitlistWrapper>
+                        <Watchlist />
+                      </WaitlistWrapper>
+                    </PrivateRoute>
+                  } />
+                  <Route path="/screener" element={
+                    <PrivateRoute>
+                      <WaitlistWrapper>
+                        <Screener />
+                      </WaitlistWrapper>
+                    </PrivateRoute>
+                  } />
+                  <Route path="/economic-news" element={
+                    <PrivateRoute>
+                      <WaitlistWrapper>
+                        <EconomicalNews />
+                      </WaitlistWrapper>
+                    </PrivateRoute>
+                  } />
+                  <Route path="/profile" element={
+                    <PrivateRoute>
+                      <WaitlistWrapper>
+                        <UserProfile />
+                      </WaitlistWrapper>
+                    </PrivateRoute>
+                  } />
+                </Routes>
+            </div>
+          </StockProvider>
+          </TokenProvider>
       </AuthProvider>
     </Router>
+    </>
   );
 }
 
