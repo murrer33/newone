@@ -7,23 +7,27 @@ export interface WaitlistStatus {
   isWaitlisted: boolean;
   isLoading: boolean;
   error: string | null;
+  isAuthenticated: boolean;
 }
 
 /**
  * Custom hook to check if the current user is on the waitlist
  * and redirect to the waitlist page if needed
  * 
+ * @param {string[]} publicRoutes - Routes that are accessible without authentication
  * @param {string[]} exemptRoutes - Routes that waitlisted users can access
  * @param {string} redirectPath - Path to redirect waitlisted users to
  * @returns {WaitlistStatus} Waitlist status object
  */
 export const useWaitlistCheck = (
+  publicRoutes: string[] = ['/home', '/', '/login', '/register', '/forgot-password', '/waitlist'],
   exemptRoutes: string[] = ['/waitlist', '/auth/callback', '/login', '/register', '/forgot-password'],
   redirectPath: string = '/waitlist'
 ): WaitlistStatus => {
   const [isWaitlisted, setIsWaitlisted] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,6 +36,21 @@ export const useWaitlistCheck = (
         setIsLoading(true);
         setError(null);
 
+        // Current path
+        const currentPath = window.location.pathname;
+        
+        // Check if current path is a public route that doesn't require authentication
+        const isPublicRoute = publicRoutes.some(route => 
+          currentPath === route || currentPath.startsWith(route + '/')
+        );
+        
+        if (isPublicRoute) {
+          // Public routes should be accessible without authentication checks
+          setIsWaitlisted(false);
+          setIsLoading(false);
+          return;
+        }
+
         // First check if user is authenticated
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
@@ -39,11 +58,22 @@ export const useWaitlistCheck = (
           throw sessionError;
         }
 
-        // If not authenticated, skip waitlist check (auth pages will handle this)
+        // If not authenticated, redirect to login or allow public access
         if (!session || !session.user) {
+          setIsAuthenticated(false);
           setIsWaitlisted(false);
+          
+          // If not a public route, redirect to login
+          if (!isPublicRoute) {
+            navigate('/login');
+          }
+          
+          setIsLoading(false);
           return;
         }
+
+        // User is authenticated
+        setIsAuthenticated(true);
 
         // Get user profile to check waitlist status
         const { data: profile, error: profileError } = await supabase
@@ -61,7 +91,6 @@ export const useWaitlistCheck = (
         setIsWaitlisted(waitlisted);
 
         // Check if current path is exempt from redirect
-        const currentPath = window.location.pathname;
         const isExemptRoute = exemptRoutes.some(route => 
           currentPath === route || currentPath.startsWith(route + '/')
         );
@@ -79,9 +108,9 @@ export const useWaitlistCheck = (
     };
 
     checkWaitlistStatus();
-  }, [navigate, redirectPath, exemptRoutes]);
+  }, [navigate, redirectPath, exemptRoutes, publicRoutes]);
 
-  return { isWaitlisted, isLoading, error };
+  return { isWaitlisted, isLoading, error, isAuthenticated };
 };
 
 /**

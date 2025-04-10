@@ -39,41 +39,36 @@ const WaitlistWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) 
 function App() {
   return (
     <>
-    <Router>
-      <AuthProvider>
+      <Router>
+        <AuthProvider>
           <TokenProvider>
-          <StockProvider>
+            <StockProvider>
               {/* Database check component to verify Supabase tables */}
               <DatabaseCheck />
               
               <div className="min-h-screen bg-gray-100">
                 <Routes>
+                  {/* Public Routes - Accessible without authentication */}
+                  <Route path="/home" element={<Home />} />
+                  <Route path="/waitlist" element={<WaitlistPage />} />
+                  <Route path="/" element={<Home />} />
+
                   {/* Auth Routes */}
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/home" element={<Home />} />
-                  
+
                   {/* Payment Routes */}
                   <Route path="/payment-success" element={<PrivateRoute><PaymentSuccess /></PrivateRoute>} />
 
-                  {/* Waitlist page (accessible to all authenticated users) */}
-                  <Route path="/waitlist" element={
-                    <PrivateRoute>
-                      <WaitlistPage />
-                    </PrivateRoute>
-                  } />
-
-                  {/* Conditional Home Route */}
-                  <Route path="/" element={
+                  {/* Protected Routes */}
+                  <Route path="/dashboard" element={
                     <PrivateRoute>
                       <WaitlistWrapper>
                         <Dashboard />
                       </WaitlistWrapper>
                     </PrivateRoute>
                   } />
-
-                  {/* Protected Routes */}
                   <Route path="/market" element={
                     <PrivateRoute>
                       <WaitlistWrapper>
@@ -117,11 +112,11 @@ function App() {
                     </PrivateRoute>
                   } />
                 </Routes>
-            </div>
-          </StockProvider>
+              </div>
+            </StockProvider>
           </TokenProvider>
-      </AuthProvider>
-    </Router>
+        </AuthProvider>
+      </Router>
     </>
   );
 }

@@ -1,6 +1,29 @@
 -- First, ensure the is_waitlisted column exists in the users table
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS is_waitlisted BOOLEAN DEFAULT TRUE;
 
+-- Create a waitlist table for non-authenticated users
+CREATE TABLE IF NOT EXISTS public.waitlist (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email TEXT NOT NULL UNIQUE,
+  name TEXT,
+  joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  referral_code TEXT UNIQUE,
+  referred_by TEXT,
+  processed BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create index on waitlist email
+CREATE INDEX IF NOT EXISTS idx_waitlist_email ON public.waitlist(email);
+CREATE INDEX IF NOT EXISTS idx_waitlist_referral_code ON public.waitlist(referral_code);
+
+-- Allow anonymous access to the waitlist table for insertion only
+ALTER TABLE public.waitlist ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow anonymous insert to waitlist" ON public.waitlist
+  FOR INSERT TO anon
+  WITH CHECK (true);
+
 -- Create a helper function to check if a user is not waitlisted
 CREATE OR REPLACE FUNCTION public.is_not_waitlisted()
 RETURNS BOOLEAN AS $$
@@ -56,10 +79,10 @@ DROP POLICY IF EXISTS "Allow users to insert their own subscriptions" ON public.
 CREATE POLICY "Allow users to insert their own subscriptions if not waitlisted" ON public.subscriptions
   FOR INSERT WITH CHECK (auth.uid() = user_id AND public.is_not_waitlisted());
 
--- Plans table policies (read-only for non-waitlisted users)
+-- Allow public access to plans table for viewing
 DROP POLICY IF EXISTS "Allow users to view subscription plans" ON public.plans;
-CREATE POLICY "Allow users to view subscription plans if not waitlisted" ON public.plans
-  FOR SELECT USING (public.is_not_waitlisted());
+CREATE POLICY "Allow public to view subscription plans" ON public.plans
+  FOR SELECT USING (true);
 
 -- Update plans table with new values
 TRUNCATE TABLE public.plans RESTART IDENTITY CASCADE;
@@ -68,10 +91,6 @@ VALUES
   ('1', 'Free Plan', 0.00, '["Basic stock analysis", "Daily market updates", "Email support"]', true),
   ('2', 'Premium Plan', 9.99, '["Advanced stock analysis", "Real-time market updates", "Priority support"]', false),
   ('3', 'Pro Plan', 19.99, '["AI predictions", "Custom reports", "Expert support"]', false);
-
--- Create a special policy to always allow access to the waitlist page
--- This is a placeholder - you would typically implement this in your frontend code
--- by checking the is_waitlisted flag from the user's profile
 
 -- Helper function to check waitlist status for the current user
 CREATE OR REPLACE FUNCTION public.get_waitlist_status()
