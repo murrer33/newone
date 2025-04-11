@@ -78,15 +78,16 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="bg-white">
+    <div className="bg-gray-900 text-white">
       {/* Hero Section */}
-      <div className="relative bg-gray-900">
+      <div className="relative">
         <div className="absolute inset-0">
           <img 
-            className="w-full h-full object-cover opacity-30"
+            className="w-full h-full object-cover opacity-20"
             src="https://images.unsplash.com/photo-1640340434771-5e72dc61728a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1964&q=80" 
             alt="Stock market chart"
           />
+          <div className="absolute inset-0 bg-gradient-to-b from-gray-900 to-transparent"></div>
         </div>
         <div className="relative px-4 py-24 mx-auto max-w-7xl sm:px-6 lg:px-8 flex flex-col items-center text-center">
           <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
@@ -128,58 +129,58 @@ const Home: React.FC = () => {
       </div>
 
       {/* Features Section */}
-      <div className="py-16">
+      <div className="py-16 bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
               Why Choose Finpulses?
             </h2>
-            <p className="mt-4 text-lg text-gray-500">
+            <p className="mt-4 text-lg text-gray-300">
               Get ahead in the market with our cutting-edge features
             </p>
           </div>
 
           <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="text-blue-600 mb-4">
+            <div className="bg-gray-700 p-6 rounded-lg shadow-sm">
+              <div className="text-blue-400 mb-4">
                 <TrendingUp size={24} />
               </div>
-              <h3 className="text-lg font-medium text-gray-900">AI Predictions</h3>
-              <p className="mt-2 text-gray-500">Advanced algorithms predict market trends with high accuracy</p>
+              <h3 className="text-lg font-medium text-white">AI Predictions</h3>
+              <p className="mt-2 text-gray-300">Advanced algorithms predict market trends with high accuracy</p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="text-blue-600 mb-4">
+            <div className="bg-gray-700 p-6 rounded-lg shadow-sm">
+              <div className="text-blue-400 mb-4">
                 <Award size={24} />
               </div>
-              <h3 className="text-lg font-medium text-gray-900">Expert Analysis</h3>
-              <p className="mt-2 text-gray-500">Get insights from market experts and seasoned analysts</p>
+              <h3 className="text-lg font-medium text-white">Expert Analysis</h3>
+              <p className="mt-2 text-gray-300">Get insights from market experts and seasoned analysts</p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="text-blue-600 mb-4">
+            <div className="bg-gray-700 p-6 rounded-lg shadow-sm">
+              <div className="text-blue-400 mb-4">
                 <Shield size={24} />
               </div>
-              <h3 className="text-lg font-medium text-gray-900">Risk Management</h3>
-              <p className="mt-2 text-gray-500">Advanced tools to help you manage and minimize risks</p>
+              <h3 className="text-lg font-medium text-white">Risk Management</h3>
+              <p className="mt-2 text-gray-300">Advanced tools to help you manage and minimize risks</p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="text-blue-600 mb-4">
+            <div className="bg-gray-700 p-6 rounded-lg shadow-sm">
+              <div className="text-blue-400 mb-4">
                 <Zap size={24} />
               </div>
-              <h3 className="text-lg font-medium text-gray-900">Real-time Updates</h3>
-              <p className="mt-2 text-gray-500">Get instant notifications about market changes</p>
+              <h3 className="text-lg font-medium text-white">Real-time Updates</h3>
+              <p className="mt-2 text-gray-300">Get instant notifications about market changes</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Subscription Plans */}
-      <div className="py-16">
+      <div className="py-16 bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
               Subscription Plans
             </h2>
-            <p className="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">
+            <p className="mt-4 max-w-2xl text-xl text-gray-300 lg:mx-auto">
               Choose the right plan for your investment needs
             </p>
           </div>
@@ -188,13 +189,13 @@ const Home: React.FC = () => {
             {subscriptionPlans.map((plan) => (
               <div
                 key={plan.id}
-                className="border border-gray-200 rounded-lg shadow-sm divide-y divide-gray-200 overflow-hidden"
+                className="border border-gray-700 rounded-lg shadow-sm divide-y divide-gray-700 overflow-hidden"
               >
-                <div className="p-6 bg-white">
-                  <h3 className="text-xl font-semibold text-gray-900">{plan.name}</h3>
+                <div className="p-6 bg-gray-800">
+                  <h3 className="text-xl font-semibold text-white">{plan.name}</h3>
                   <p className="mt-8">
-                    <span className="text-4xl font-extrabold text-gray-900">${plan.price}</span>
-                    <span className="text-base font-medium text-gray-500">/month</span>
+                    <span className="text-4xl font-extrabold text-white">${plan.price}</span>
+                    <span className="text-base font-medium text-gray-300">/month</span>
                   </p>
                   <div className="mt-8 flex flex-col gap-4">
                     <button
@@ -214,13 +215,13 @@ const Home: React.FC = () => {
                     </Link>
                   </div>
                 </div>
-                <div className="px-6 pt-6 pb-8">
-                  <h4 className="text-sm font-semibold text-gray-900 tracking-wide uppercase">What's included</h4>
+                <div className="px-6 pt-6 pb-8 bg-gray-800">
+                  <h4 className="text-sm font-semibold text-gray-300 tracking-wide uppercase">What's included</h4>
                   <ul className="mt-6 space-y-4">
                     {plan.features.map((feature, index) => (
                       <li key={index} className="flex space-x-3">
-                        <Zap className="flex-shrink-0 h-5 w-5 text-green-500" />
-                        <span className="text-base text-gray-500">{feature}</span>
+                        <Zap className="flex-shrink-0 h-5 w-5 text-blue-400" />
+                        <span className="text-base text-gray-300">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -253,13 +254,13 @@ const Home: React.FC = () => {
 
       {/* Waitlist Form Modal */}
       {showWaitlistForm && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Join the Waitlist</h2>
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <h2 className="text-2xl font-bold text-white mb-4">Join the Waitlist</h2>
             <form onSubmit={handleWaitlistSubmit}>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-300">
                     Email address
                   </label>
                   <input
@@ -267,12 +268,12 @@ const Home: React.FC = () => {
                     id="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     required
                   />
                 </div>
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-300">
                     Name (optional)
                   </label>
                   <input
@@ -280,18 +281,18 @@ const Home: React.FC = () => {
                     id="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label htmlFor="plan" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="plan" className="block text-sm font-medium text-gray-300">
                     Preferred Plan
                   </label>
                   <select
                     id="plan"
                     value={preferredPlan}
                     onChange={(e) => setPreferredPlan(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   >
                     {subscriptionPlans.map((plan) => (
                       <option key={plan.id} value={plan.id}>
@@ -301,13 +302,13 @@ const Home: React.FC = () => {
                   </select>
                 </div>
                 {submitError && (
-                  <div className="text-red-500 text-sm">{submitError}</div>
+                  <div className="text-red-400 text-sm">{submitError}</div>
                 )}
                 <div className="flex justify-end space-x-3">
                   <button
                     type="button"
                     onClick={() => setShowWaitlistForm(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                    className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 rounded-md hover:bg-gray-600"
                   >
                     Cancel
                   </button>
