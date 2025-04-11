@@ -1,5 +1,17 @@
 import React, { useState } from 'react';
-import { Line } from 'react-chartjs-2';
+import { 
+  BarChart3, 
+  TrendingUp, 
+  TrendingDown, 
+  DollarSign, 
+  Activity,
+  Scale,
+  Clock,
+  Users,
+  Search,
+  Plus,
+  X
+} from 'lucide-react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -8,8 +20,23 @@ import {
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 } from 'chart.js';
+import { Line } from 'react-chartjs-2';
+import MarketStatusHeader from '../components/MarketStatusHeader';
+import StockStats from '../components/StockStats';
+import TechnicalIndicator from '../components/TechnicalIndicator';
+import NewsAnalysis from '../components/NewsAnalysis';
+import SentimentAnalysisCard from '../components/SentimentAnalysisCard';
+import DataLoadingPlaceholder from '../components/DataLoadingPlaceholder';
+import {
+  generateHistoricalData,
+  generateTechnicalIndicators,
+  generateStockPredictions,
+  generateSocialSentiment,
+  generateStockNews,
+} from '../utils/mockData';
+import { HistoricalData } from '../types';
 
 // Register ChartJS components
 ChartJS.register(
@@ -22,164 +49,243 @@ ChartJS.register(
   Legend
 );
 
-// Mock stock data
-const mockStockData = {
-  name: 'TechCorp Inc.',
-  symbol: 'TCI',
-  currentPrice: 245.67,
-  change: 12.34,
-  changePercent: 5.28,
-  marketCap: '125.4B',
-  volume: '2.3M',
-  peRatio: 28.5,
-  dividendYield: '1.2%',
-  chartData: {
-    labels: ['9:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00'],
-    datasets: [
-      {
-        label: 'Price',
-        data: [230, 232, 235, 238, 240, 242, 243, 244, 245, 246, 245, 246, 247, 245.67],
-        borderColor: 'rgb(59, 130, 246)',
-        tension: 0.1
-      }
-    ]
-  }
-};
-
-// Plan features
-const planFeatures = {
-  basic: [
-    { name: 'Basic Technical Analysis', description: 'Simple moving averages and volume analysis', tokens: 0 },
-    { name: 'Company Overview', description: 'Basic company information and financials', tokens: 0 },
-    { name: 'Market News', description: 'Latest market news and updates', tokens: 0 }
-  ],
-  intermediate: [
-    { name: 'Advanced Technical Analysis', description: 'RSI, MACD, and Bollinger Bands', tokens: 0 },
-    { name: 'Detailed Fundamentals', description: 'In-depth financial statements and ratios', tokens: 0 },
-    { name: 'Live Price Updates', description: 'Real-time stock price updates', tokens: 0 },
-    { name: 'Social Media Sentiment', description: 'Basic sentiment analysis from social media', tokens: 5 }
-  ],
-  advanced: [
-    { name: 'AI Price Prediction', description: 'Machine learning based price predictions', tokens: 10 },
-    { name: 'Advanced Sentiment Analysis', description: 'Deep learning sentiment analysis from multiple sources', tokens: 8 },
-    { name: 'Custom Alerts', description: 'Create custom price and volume alerts', tokens: 0 },
-    { name: 'Portfolio Integration', description: 'Sync with your investment portfolio', tokens: 0 },
-    { name: 'Expert Analysis', description: 'Access to expert stock analysis and recommendations', tokens: 15 }
-  ]
-};
-
 const DemoStock: React.FC = () => {
-  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'intermediate' | 'advanced'>('basic');
+  const [timeframe, setTimeframe] = useState<'1D' | '5D' | '1W' | '1M' | '6M' | '1Y' | '5Y' | 'MAX'>('1D');
+  const [selectedStocks, setSelectedStocks] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
+  // Mock data for demonstration
+  const mockStockData = {
+    symbol: 'AAPL',
+    name: 'Apple Inc.',
+    price: 175.34,
+    change: 2.45,
+    changePercent: 1.42,
+    marketCap: 2.5e12,
+    volume: 85e6,
+    avgVolume: 80e6,
+    peRatio: 25.6,
+    eps: 4.85,
+    dividend: 1.75,
+    high52w: 198.23,
+    low52w: 142.53,
+  };
+
+  // Generate mock data
+  const historicalData = generateHistoricalData('AAPL', 30);
+  const technicalIndicators = generateTechnicalIndicators('AAPL');
+  const predictions = generateStockPredictions('AAPL');
+  const sentimentData = generateSocialSentiment('AAPL');
+  const newsData = generateStockNews('AAPL');
+
+  // Convert NewsItem[] to NewsArticle[] format expected by NewsAnalysis component
+  const newsArticles = newsData.map(item => {
+    // Map impact to the correct type expected by NewsAnalysis component
+    let newsImpact: 'high-positive' | 'positive' | 'neutral' | 'negative' | 'high-negative' = 'neutral';
+    
+    if (item.impact === 'high' && item.sentiment === 'positive') {
+      newsImpact = 'high-positive';
+    } else if (item.impact === 'medium' && item.sentiment === 'positive') {
+      newsImpact = 'positive';
+    } else if (item.impact === 'medium' && item.sentiment === 'negative') {
+      newsImpact = 'negative';
+    } else if (item.impact === 'high' && item.sentiment === 'negative') {
+      newsImpact = 'high-negative';
+    }
+    
+    return {
+      headline: item.title,
+      summary: item.title, // Use title as summary if content doesn't exist
+      datetime: new Date(item.time).getTime(), // Convert time string to timestamp
+      url: item.url,
+      source: item.source,
+      image: item.image,
+      impact: newsImpact
+    };
+  });
+
+  // Chart configuration
   const chartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
-        display: false
+        position: 'top' as const,
       },
-      tooltip: {
-        mode: 'index' as const,
-        intersect: false
-      }
     },
     scales: {
       y: {
-        beginAtZero: false
-      }
-    }
+        beginAtZero: false,
+      },
+    },
   };
 
-  const renderFeature = (feature: { name: string; description: string; tokens: number }, isIncluded: boolean) => (
-    <div className={`p-4 rounded-lg border ${isIncluded ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}>
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className={`font-medium ${isIncluded ? 'text-blue-900' : 'text-gray-500'}`}>{feature.name}</h3>
-          <p className={`text-sm ${isIncluded ? 'text-blue-700' : 'text-gray-400'}`}>{feature.description}</p>
-        </div>
-        {!isIncluded && (
-          <span className="text-sm font-medium text-gray-500">
-            🔒 Unlock with {feature.tokens} Tokens
-          </span>
-        )}
-      </div>
-    </div>
-  );
+  const chartData = {
+    labels: historicalData.map(data => new Date(data.date).toLocaleDateString()),
+    datasets: [
+      {
+        label: 'Price',
+        data: historicalData.map(data => data.close),
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+      },
+    ],
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Plan Selector */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Choose Your Plan</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {['basic', 'intermediate', 'advanced'].map((plan) => (
-              <button
-                key={plan}
-                onClick={() => setSelectedPlan(plan as 'basic' | 'intermediate' | 'advanced')}
-                className={`p-4 rounded-lg border-2 transition-colors ${
-                  selectedPlan === plan
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-blue-300'
-                }`}
-              >
-                <h3 className="text-lg font-semibold capitalize">{plan} Plan</h3>
-              </button>
-            ))}
-          </div>
-        </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Market Status Header */}
+      <MarketStatusHeader
+        title="Demo Stock Page"
+        loading={false}
+        error={null}
+        marketStatus={{
+          isOpen: true,
+          holiday: null,
+          loading: false,
+          error: null
+        }}
+        lastUpdated={new Date()}
+        onRefresh={() => {}}
+      />
 
-        {/* Stock Overview */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{mockStockData.name}</h1>
-              <p className="text-gray-500">{mockStockData.symbol}</p>
+      {/* Main Stock Info */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-start">
+          <div>
+            <div className="flex items-center mb-2">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{mockStockData.symbol}</h1>
+              <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">{mockStockData.name}</span>
             </div>
-            <div className="text-right mt-4 md:mt-0">
-              <p className="text-3xl font-bold text-gray-900">${mockStockData.currentPrice}</p>
-              <p className={`text-sm ${mockStockData.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className="flex items-center">
+              <span className="text-3xl font-bold text-gray-900 dark:text-white">
+                ${mockStockData.price}
+              </span>
+              <span className={`ml-2 text-sm ${mockStockData.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {mockStockData.change >= 0 ? '+' : ''}{mockStockData.change} ({mockStockData.changePercent}%)
-              </p>
+              </span>
+            </div>
+          </div>
+          <div className="mt-4 md:mt-0 flex space-x-2">
+            <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
+              Buy
+            </button>
+            <button className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+              Add to Watchlist
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Stock Stats */}
+      <div className="mb-6">
+        <StockStats stats={{
+          marketCap: mockStockData.marketCap,
+          volume: mockStockData.volume,
+          avgVolume: mockStockData.avgVolume,
+          peRatio: mockStockData.peRatio,
+          eps: mockStockData.eps,
+          dividend: mockStockData.dividend,
+          high52w: mockStockData.high52w,
+          low52w: mockStockData.low52w,
+        }} />
+      </div>
+
+      {/* Chart */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Price Chart</h2>
+              <div className="flex space-x-2">
+                {(['1D', '5D', '1W', '1M', '6M', '1Y', '5Y', 'MAX'] as const).map((period) => (
+                  <button
+                    key={period}
+                    onClick={() => setTimeframe(period)}
+                    className={`px-2 py-1 text-xs rounded ${
+                      timeframe === period
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    {period}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="h-80">
+              <Line data={chartData} options={chartOptions} />
             </div>
           </div>
 
-          {/* Chart */}
-          <div className="h-64 mb-6">
-            <Line data={mockStockData.chartData} options={chartOptions} />
+          {/* Technical Indicators */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+              <BarChart3 className="h-5 w-5 text-blue-500 mr-2" />
+              Technical Analysis
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {technicalIndicators.map((indicator, index) => (
+                <TechnicalIndicator key={index} indicator={indicator} />
+              ))}
+            </div>
           </div>
 
-          {/* Stock Metrics */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500">Market Cap</p>
-              <p className="font-semibold">{mockStockData.marketCap}</p>
-            </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500">Volume</p>
-              <p className="font-semibold">{mockStockData.volume}</p>
-            </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500">P/E Ratio</p>
-              <p className="font-semibold">{mockStockData.peRatio}</p>
-            </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500">Dividend Yield</p>
-              <p className="font-semibold">{mockStockData.dividendYield}</p>
-            </div>
+          {/* News Analysis */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">News Analysis</h2>
+            <NewsAnalysis news={newsArticles} />
           </div>
         </div>
 
-        {/* Features */}
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Available Features</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {planFeatures.basic.map((feature) => renderFeature(feature, true))}
-            {planFeatures.intermediate.map((feature) => 
-              renderFeature(feature, selectedPlan === 'intermediate' || selectedPlan === 'advanced')
-            )}
-            {planFeatures.advanced.map((feature) => 
-              renderFeature(feature, selectedPlan === 'advanced')
-            )}
+        <div className="space-y-6">
+          {/* Sentiment Analysis */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Sentiment Analysis</h2>
+            {sentimentData && <SentimentAnalysisCard data={sentimentData} />}
+          </div>
+
+          {/* Stock Comparison */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Stock Comparison</h2>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  placeholder="Search stocks..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="p-2 text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="space-y-2">
+                {selectedStocks.map((stock) => (
+                  <div key={stock.symbol} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                    <span className="text-sm">{stock.symbol}</span>
+                    <button
+                      onClick={() => setSelectedStocks(selectedStocks.filter(s => s.symbol !== stock.symbol))}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              {selectedStocks.length < 4 && (
+                <button
+                  className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white rounded-md py-2 hover:bg-blue-600 transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Add Stock</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
