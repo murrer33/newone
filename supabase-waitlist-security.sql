@@ -4,6 +4,7 @@ ALTER TABLE public.users ADD COLUMN IF NOT EXISTS is_waitlisted BOOLEAN DEFAULT 
 -- Create a waitlist table for non-authenticated users
 CREATE TABLE IF NOT EXISTS public.waitlist (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  uid UUID DEFAULT uuid_generate_v4() UNIQUE,
   email TEXT NOT NULL UNIQUE,
   name TEXT,
   joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -15,48 +16,44 @@ CREATE TABLE IF NOT EXISTS public.waitlist (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create index on waitlist email
+-- Create index on waitlist email and uid
 CREATE INDEX IF NOT EXISTS idx_waitlist_email ON public.waitlist(email);
+CREATE INDEX IF NOT EXISTS idx_waitlist_uid ON public.waitlist(uid);
 CREATE INDEX IF NOT EXISTS idx_waitlist_referral_code ON public.waitlist(referral_code);
 
--- Allow anonymous access to the waitlist table for insertion only
+-- Enable RLS
 ALTER TABLE public.waitlist ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policies first
+-- Drop all existing policies
 DROP POLICY IF EXISTS "Allow anonymous insert to waitlist" ON public.waitlist;
+DROP POLICY IF EXISTS "anon_insert_policy" ON public.waitlist;
+DROP POLICY IF EXISTS "select_all_policy" ON public.waitlist;
+DROP POLICY IF EXISTS "service_role_all_policy" ON public.waitlist;
+DROP POLICY IF EXISTS "anon_select_policy" ON public.waitlist;
+DROP POLICY IF EXISTS "auth_select_policy" ON public.waitlist;
+DROP POLICY IF EXISTS "service_role_policy" ON public.waitlist;
 
--- Create clear policy for anonymous users to insert
+-- Create a single, simple policy for anonymous inserts
 CREATE POLICY "anon_insert_policy" ON public.waitlist
   FOR INSERT TO anon
   WITH CHECK (true);
-  
--- Create a policy to allow everyone to read the waitlist table
-CREATE POLICY "select_all_policy" ON public.waitlist
-  FOR SELECT
-  USING (true);
 
--- Allow service role to do all operations
-CREATE POLICY "service_role_all_policy" ON public.waitlist
-  FOR ALL TO service_role
-  USING (true)
-  WITH CHECK (true);
+-- Grant necessary permissions
+GRANT INSERT ON public.waitlist TO anon;
+GRANT SELECT ON public.waitlist TO anon;
+GRANT ALL ON public.waitlist TO authenticated;
+GRANT ALL ON public.waitlist TO service_role;
 
--- Create a helper function to check if a user is not waitlisted
-CREATE OR REPLACE FUNCTION public.is_not_waitlisted()
-RETURNS BOOLEAN AS $$
-DECLARE
-  is_user_waitlisted BOOLEAN;
+-- Create a function to generate a unique uid for waitlist entries
+CREATE OR REPLACE FUNCTION generate_waitlist_uid()
+RETURNS UUID AS $$
 BEGIN
-  -- Get the waitlist status for the current authenticated user
-  SELECT is_waitlisted INTO is_user_waitlisted
-  FROM public.users
-  WHERE uid = auth.uid();
-  
-  -- If user doesn't exist or is_waitlisted is NULL, default to true (restricted)
-  -- Otherwise, return the negated value of is_waitlisted
-  RETURN COALESCE(NOT is_user_waitlisted, FALSE);
+  RETURN uuid_generate_v4();
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Verify the policies
+SELECT * FROM pg_policies WHERE tablename = 'waitlist';
 
 -- Update existing policies or create new ones for each table that should be restricted
 

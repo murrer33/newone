@@ -58,7 +58,7 @@ const Home: React.FC = () => {
       setIsSubmitting(true);
       setSubmitError(null);
       
-      // Try to add to waitlist table with minimal fields
+      // Try to add to waitlist table
       const { error: insertError } = await supabase
         .from('waitlist')
         .insert([
