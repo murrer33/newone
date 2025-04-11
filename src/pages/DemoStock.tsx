@@ -13,7 +13,7 @@ import {
   X,
   Lock,
   Sun,
-  Moon
+  Moon,
 } from 'lucide-react';
 import {
   Chart as ChartJS,
