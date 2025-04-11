@@ -72,16 +72,18 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
           .from('subscriptions')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle(); // Use maybeSingle instead of single to handle no rows case
 
         if (error) {
-          console.error('Error fetching subscription:', error);
-          setError('Failed to fetch subscription status');
-          setIsLoading(false);
-          return;
-        }
-
-        if (data) {
+          if (error.code === 'PGRST116') {
+            // No subscription found, which is fine for new users
+            setCurrentPlan(null);
+            setSubscriptionDetails(null);
+          } else {
+            console.error('Error fetching subscription:', error);
+            setError('Failed to fetch subscription status');
+          }
+        } else if (data) {
           setCurrentPlan(data.plan_id);
           setSubscriptionDetails(data);
         } else {
