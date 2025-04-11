@@ -1,31 +1,14 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { 
-  BarChart3, 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  Activity,
-  Scale,
-  Clock,
-  Users,
-  Search,
-  Plus,
-  X,
-  Lock,
-  Sun,
-  Moon,
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  BarChart, Bar, AreaChart, Area
+} from 'recharts';
+import { 
+  ArrowUp, ArrowDown, TrendingUp, TrendingDown, 
+  DollarSign, Percent, Clock, Activity, 
+  BarChart2, LineChart as LineChartIcon, CandlestickChart
 } from 'lucide-react';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import { Line } from 'react-chartjs-2';
 import MarketStatusHeader from '../components/MarketStatusHeader';
 import StockStats from '../components/StockStats';
 import TechnicalIndicator from '../components/TechnicalIndicator';
@@ -41,152 +24,76 @@ import {
 } from '../utils/mockData';
 import { HistoricalData } from '../types';
 
-// Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+// Mock stock data
+const mockStocks = [
+  { symbol: 'TECH', name: 'Tech Innovations Inc.', price: 125.45, change: 2.34, changePercent: 1.9 },
+  { symbol: 'FINT', name: 'Financial Tech Corp', price: 89.67, change: -1.23, changePercent: -1.35 },
+  { symbol: 'INNO', name: 'Innovation Systems', price: 156.78, change: 3.45, changePercent: 2.25 },
+  { symbol: 'DIGI', name: 'Digital Solutions', price: 112.34, change: -0.89, changePercent: -0.79 },
+  { symbol: 'SMART', name: 'Smart Technologies', price: 145.67, change: 4.56, changePercent: 3.24 }
+];
 
-type Plan = 'free' | 'plus' | 'pro';
-type Timeframe = '1D' | '5D' | '1W' | '1M' | '6M' | '1Y' | '5Y' | 'MAX';
+// Mock historical data
+const generateHistoricalData = () => {
+  const data = [];
+  const basePrice = 100;
+  for (let i = 0; i < 30; i++) {
+    const date = new Date();
+    date.setDate(date.getDate() - (29 - i));
+    const price = basePrice + Math.random() * 20 - 10;
+    data.push({
+      date: date.toISOString().split('T')[0],
+      price: price,
+      bid: price - Math.random() * 0.5,
+      ask: price + Math.random() * 0.5,
+      volume: Math.floor(Math.random() * 1000000) + 500000
+    });
+  }
+  return data;
+};
+
+// Mock prediction data
+const generatePredictionData = () => {
+  const data = [];
+  const basePrice = 100;
+  for (let i = 0; i < 10; i++) {
+    const date = new Date();
+    date.setDate(date.getDate() + i);
+    const price = basePrice + Math.random() * 10 - 5;
+    data.push({
+      date: date.toISOString().split('T')[0],
+      predicted: price,
+      confidence: Math.random() * 0.2 + 0.7
+    });
+  }
+  return data;
+};
+
+// Mock technical indicators
+const generateTechnicalIndicators = () => {
+  return {
+    rsi: Math.random() * 30 + 35,
+    macd: Math.random() * 2 - 1,
+    bollinger: {
+      upper: 110,
+      middle: 100,
+      lower: 90
+    }
+  };
+};
 
 const DemoStock: React.FC = () => {
-  const [timeframe, setTimeframe] = useState<Timeframe>('1D');
-  const [selectedStocks, setSelectedStocks] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedPlan, setSelectedPlan] = useState<Plan>('free');
+  const [selectedStock, setSelectedStock] = useState(mockStocks[0]);
+  const [timeframe, setTimeframe] = useState('1D');
+  const [historicalData] = useState(generateHistoricalData());
+  const [predictionData] = useState(generatePredictionData());
+  const [technicalIndicators] = useState(generateTechnicalIndicators());
+  const [selectedPlan, setSelectedPlan] = useState('free');
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Mock data for demonstration
-  const mockStockData = {
-    symbol: 'AAPL',
-    name: 'Apple Inc.',
-    price: 175.34,
-    change: 2.45,
-    changePercent: 1.42,
-    marketCap: 2.5e12,
-    volume: 85e6,
-    avgVolume: 80e6,
-    peRatio: 25.6,
-    eps: 4.85,
-    dividend: 1.75,
-    high52w: 198.23,
-    low52w: 142.53,
+  const handleStockSelect = (stock: typeof mockStocks[0]) => {
+    setSelectedStock(stock);
   };
-
-  // Generate mock data
-  const historicalData = generateHistoricalData('AAPL', 30);
-  const technicalIndicators = generateTechnicalIndicators('AAPL');
-  const predictions = generateStockPredictions('AAPL');
-  const sentimentData = generateSocialSentiment('AAPL');
-  const newsData = generateStockNews('AAPL');
-
-  // Convert NewsItem[] to NewsArticle[] format expected by NewsAnalysis component
-  const newsArticles = newsData.map(item => {
-    // Map impact to the correct type expected by NewsAnalysis component
-    let newsImpact: 'high-positive' | 'positive' | 'neutral' | 'negative' | 'high-negative' = 'neutral';
-    
-    if (item.impact === 'high' && item.sentiment === 'positive') {
-      newsImpact = 'high-positive';
-    } else if (item.impact === 'medium' && item.sentiment === 'positive') {
-      newsImpact = 'positive';
-    } else if (item.impact === 'medium' && item.sentiment === 'negative') {
-      newsImpact = 'negative';
-    } else if (item.impact === 'high' && item.sentiment === 'negative') {
-      newsImpact = 'high-negative';
-    }
-    
-    return {
-      headline: item.title,
-      summary: item.title, // Use title as summary if content doesn't exist
-      datetime: new Date(item.time).getTime(), // Convert time string to timestamp
-      url: item.url,
-      source: item.source,
-      image: item.image,
-      impact: newsImpact
-    };
-  });
-
-  // Chart configuration
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: false,
-      },
-    },
-  };
-
-  const chartData = {
-    labels: historicalData.map(data => new Date(data.date).toLocaleDateString()),
-    datasets: [
-      {
-        label: 'Price',
-        data: historicalData.map(data => data.close),
-        borderColor: 'rgb(59, 130, 246)',
-        backgroundColor: 'rgba(59, 130, 246, 0.5)',
-      },
-    ],
-  };
-
-  // Feature availability based on plan
-  const isFeatureAvailable = (feature: string) => {
-    switch (feature) {
-      case 'technicalAnalysis':
-        return selectedPlan !== 'free';
-      case 'sentimentAnalysis':
-        return selectedPlan === 'pro';
-      case 'stockComparison':
-        return selectedPlan !== 'free';
-      case 'advancedChart':
-        return selectedPlan !== 'free';
-      default:
-        return true;
-    }
-  };
-
-  // Plan selection component
-  const PlanSelector = () => (
-    <div className="mb-8">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Choose Your Plan</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {(['free', 'plus', 'pro'] as Plan[]).map((plan) => (
-          <button
-            key={plan}
-            onClick={() => setSelectedPlan(plan)}
-            className={`p-4 rounded-lg border-2 transition-colors ${
-              selectedPlan === plan
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700'
-            }`}
-          >
-            <h3 className="text-lg font-semibold capitalize">{plan} Plan</h3>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  // Feature lock overlay
-  const FeatureLock = ({ feature }: { feature: string }) => (
-    <div className="absolute inset-0 bg-gray-900/50 dark:bg-gray-900/70 rounded-lg flex items-center justify-center">
-      <div className="text-center">
-        <Lock className="h-8 w-8 text-white mx-auto mb-2" />
-        <p className="text-white text-sm">Upgrade to {feature === 'technicalAnalysis' ? 'Plus' : 'Pro'} plan</p>
-      </div>
-    </div>
-  );
 
   return (
     <div className={`min-h-screen ${isDarkMode ? 'dark' : ''}`}>
@@ -199,164 +106,218 @@ const DemoStock: React.FC = () => {
           {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </button>
 
-        {/* Plan Selector */}
-        <PlanSelector />
-
-        {/* Market Status Header */}
-        <MarketStatusHeader
-          title="Demo Stock Page"
-          loading={false}
-          error={null}
-          marketStatus={{
-            isOpen: true,
-            holiday: null,
-            loading: false,
-            error: null
-          }}
-          lastUpdated={new Date()}
-          onRefresh={() => {}}
-        />
-
-        {/* Main Stock Info */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-start">
-            <div>
-              <div className="flex items-center mb-2">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{mockStockData.symbol}</h1>
-                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">{mockStockData.name}</span>
+        {/* Stock Selection */}
+        <div className="mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {mockStocks.map((stock) => (
+              <div
+                key={stock.symbol}
+                onClick={() => handleStockSelect(stock)}
+                className={`p-4 rounded-lg cursor-pointer transition-colors ${
+                  selectedStock.symbol === stock.symbol
+                    ? 'bg-blue-100 border-2 border-blue-500'
+                    : 'bg-white hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-semibold">{stock.symbol}</h3>
+                    <p className="text-sm text-gray-500">{stock.name}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold">${stock.price.toFixed(2)}</p>
+                    <p className={`text-sm ${stock.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {stock.change >= 0 ? '+' : ''}{stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center">
-                <span className="text-3xl font-bold text-gray-900 dark:text-white">
-                  ${mockStockData.price}
-                </span>
-                <span className={`ml-2 text-sm ${mockStockData.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {mockStockData.change >= 0 ? '+' : ''}{mockStockData.change} ({mockStockData.changePercent}%)
-                </span>
-              </div>
-            </div>
-            <div className="mt-4 md:mt-0 flex space-x-2">
-              <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
-                Buy
-              </button>
-              <button className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
-                Add to Watchlist
-              </button>
-            </div>
+            ))}
           </div>
         </div>
 
-        {/* Stock Stats */}
-        <div className="mb-6">
-          <StockStats stats={{
-            marketCap: mockStockData.marketCap,
-            volume: mockStockData.volume,
-            avgVolume: mockStockData.avgVolume,
-            peRatio: mockStockData.peRatio,
-            eps: mockStockData.eps,
-            dividend: mockStockData.dividend,
-            high52w: mockStockData.high52w,
-            low52w: mockStockData.low52w,
-          }} />
-        </div>
-
-        {/* Chart */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 relative">
-              {!isFeatureAvailable('advancedChart') && <FeatureLock feature="advancedChart" />}
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Price Chart */}
+            <div className="bg-white rounded-lg shadow p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Price Chart</h2>
+                <h2 className="text-xl font-semibold">{selectedStock.symbol} Price Chart</h2>
                 <div className="flex space-x-2">
-                  {(['1D', '5D', '1W', '1M', '6M', '1Y', '5Y', 'MAX'] as Timeframe[]).map((period) => (
+                  {['1D', '1W', '1M', '3M', '1Y'].map((tf) => (
                     <button
-                      key={period}
-                      onClick={() => setTimeframe(period)}
-                      className={`px-2 py-1 text-xs rounded ${
-                        timeframe === period
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                      key={tf}
+                      onClick={() => setTimeframe(tf)}
+                      className={`px-3 py-1 rounded-md ${
+                        timeframe === tf ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'
                       }`}
                     >
-                      {period}
+                      {tf}
                     </button>
                   ))}
                 </div>
               </div>
               <div className="h-80">
-                <Line data={chartData} options={chartOptions} />
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={historicalData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="price" stroke="#2563eb" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Bid/Ask Chart */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold mb-4">Bid/Ask Spread</h2>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={historicalData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Area type="monotone" dataKey="bid" stackId="1" stroke="#22c55e" fill="#22c55e" fillOpacity={0.3} />
+                    <Area type="monotone" dataKey="ask" stackId="1" stroke="#ef4444" fill="#ef4444" fillOpacity={0.3} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Prediction Chart */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold mb-4">Price Predictions</h2>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={predictionData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="predicted" stroke="#8b5cf6" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div className="space-y-8">
+            {/* Stock Stats */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold mb-4">Stock Statistics</h2>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <DollarSign className="text-gray-500" />
+                    <span className="text-gray-500">Current Price</span>
+                  </div>
+                  <p className="text-2xl font-semibold mt-2">${selectedStock.price.toFixed(2)}</p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Percent className="text-gray-500" />
+                    <span className="text-gray-500">Change</span>
+                  </div>
+                  <p className={`text-2xl font-semibold mt-2 ${selectedStock.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {selectedStock.change >= 0 ? '+' : ''}{selectedStock.changePercent.toFixed(2)}%
+                  </p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Activity className="text-gray-500" />
+                    <span className="text-gray-500">Volume</span>
+                  </div>
+                  <p className="text-2xl font-semibold mt-2">
+                    {(historicalData[historicalData.length - 1].volume / 1000000).toFixed(2)}M
+                  </p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Clock className="text-gray-500" />
+                    <span className="text-gray-500">Last Update</span>
+                  </div>
+                  <p className="text-2xl font-semibold mt-2">
+                    {new Date().toLocaleTimeString()}
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Technical Indicators */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 relative">
-              {!isFeatureAvailable('technicalAnalysis') && <FeatureLock feature="technicalAnalysis" />}
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                <BarChart3 className="h-5 w-5 text-blue-500 mr-2" />
-                Technical Analysis
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {technicalIndicators.map((indicator, index) => (
-                  <TechnicalIndicator key={index} indicator={indicator} />
-                ))}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold mb-4">Technical Indicators</h2>
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">RSI (14)</span>
+                    <span className={`font-semibold ${technicalIndicators.rsi > 70 ? 'text-red-600' : technicalIndicators.rsi < 30 ? 'text-green-600' : 'text-gray-900'}`}>
+                      {technicalIndicators.rsi.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                    <div
+                      className="bg-blue-600 h-2.5 rounded-full"
+                      style={{ width: `${technicalIndicators.rsi}%` }}
+                    ></div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">MACD</span>
+                    <span className={`font-semibold ${technicalIndicators.macd > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {technicalIndicators.macd.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Bollinger Bands</span>
+                  </div>
+                  <div className="mt-2 space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span>Upper: ${technicalIndicators.bollinger.upper.toFixed(2)}</span>
+                      <span>Middle: ${technicalIndicators.bollinger.middle.toFixed(2)}</span>
+                      <span>Lower: ${technicalIndicators.bollinger.lower.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* News Analysis */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">News Analysis</h2>
-              <NewsAnalysis news={newsArticles} />
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            {/* Sentiment Analysis */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 relative">
-              {!isFeatureAvailable('sentimentAnalysis') && <FeatureLock feature="sentimentAnalysis" />}
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Sentiment Analysis</h2>
-              {sentimentData && <SentimentAnalysisCard data={sentimentData} />}
-            </div>
-
-            {/* Stock Comparison */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 relative">
-              {!isFeatureAvailable('stockComparison') && <FeatureLock feature="stockComparison" />}
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Stock Comparison</h2>
+            {/* Plan Features */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold mb-4">Available Features</h2>
               <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="text"
-                    placeholder="Search stocks..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  />
-                  <button
-                    onClick={() => setSearchTerm('')}
-                    className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Real-time Price Updates</span>
+                  <span className="text-green-600">✓</span>
                 </div>
-                <div className="space-y-2">
-                  {selectedStocks.map((stock) => (
-                    <div key={stock.symbol} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                      <span className="text-sm dark:text-white">{stock.symbol}</span>
-                      <button
-                        onClick={() => setSelectedStocks(selectedStocks.filter(s => s.symbol !== stock.symbol))}
-                        className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Technical Analysis</span>
+                  <span className={selectedPlan === 'free' ? 'text-gray-400' : 'text-green-600'}>
+                    {selectedPlan === 'free' ? '✗' : '✓'}
+                  </span>
                 </div>
-                {selectedStocks.length < 4 && (
-                  <button
-                    className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white rounded-md py-2 hover:bg-blue-600 transition-colors"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Add Stock</span>
-                  </button>
-                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Price Predictions</span>
+                  <span className={selectedPlan !== 'pro' ? 'text-gray-400' : 'text-green-600'}>
+                    {selectedPlan !== 'pro' ? '✗' : '✓'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Advanced Charts</span>
+                  <span className={selectedPlan === 'free' ? 'text-gray-400' : 'text-green-600'}>
+                    {selectedPlan === 'free' ? '✗' : '✓'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

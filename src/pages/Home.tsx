@@ -48,54 +48,30 @@ const Home: React.FC = () => {
 
   const handleWaitlistSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email) {
-      setSubmitError('Email is required');
-      return;
-    }
-    
+    setIsSubmitting(true);
+    setSubmitError(null);
+
     try {
-      setIsSubmitting(true);
-      setSubmitError(null);
-      
-      // Try to add to waitlist table
-      const { error: insertError } = await supabase
+      const { error } = await supabase
         .from('waitlist')
         .insert([
-          { 
-            email, 
-            name,
-            preferred_plan: preferredPlan,
-            joined_at: new Date().toISOString(),
-            referral_code: Math.random().toString(36).substring(2, 10).toUpperCase()
-          }
-        ]);
-      
-      if (insertError) {
-        console.error('Error joining waitlist:', insertError);
-        setSubmitError('Failed to join waitlist. Please try again later or contact support.');
-        
-        // Save to local storage as a fallback
-        try {
-          const waitlistEntries = JSON.parse(localStorage.getItem('waitlistEntries') || '[]');
-          waitlistEntries.push({
+          {
             email,
             name,
-            preferredPlan,
-            joinedAt: new Date().toISOString(),
-            referralCode: Math.random().toString(36).substring(2, 10).toUpperCase()
-          });
-          localStorage.setItem('waitlistEntries', JSON.stringify(waitlistEntries));
-        } catch (storageError) {
-          console.error('Failed to save to local storage:', storageError);
-        }
-      } else {
-        setSubmitSuccess(true);
-        setShowWaitlistForm(false);
-      }
+            preferred_plan: preferredPlan,
+            created_at: new Date().toISOString()
+          }
+        ]);
+
+      if (error) throw error;
+
+      setSubmitSuccess(true);
+      setEmail('');
+      setName('');
+      setPreferredPlan('1');
     } catch (error) {
-      console.error('Error joining waitlist:', error);
-      setSubmitError('Failed to join waitlist. Please try again later or contact support.');
+      console.error('Error submitting to waitlist:', error);
+      setSubmitError('Failed to join waitlist. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -119,7 +95,7 @@ const Home: React.FC = () => {
           <p className="mt-6 text-xl text-gray-300 max-w-3xl">
             Finpulses.tech uses advanced machine learning algorithms to analyze market trends and provide accurate stock predictions to help you make better investment decisions.
           </p>
-          <div className="mt-10 flex flex-col sm:flex-row gap-4">
+          <div className="mt-8 flex flex-col sm:flex-row gap-4">
             {submitSuccess ? (
               <div className="bg-green-100 text-green-800 p-4 rounded-lg shadow-md">
                 <p className="font-medium">You've joined our waitlist!</p>
@@ -139,6 +115,12 @@ const Home: React.FC = () => {
                 >
                   Try Demo
                 </Link>
+                <Link
+                  to="/login"
+                  className="px-8 py-3 text-base font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 md:py-4 md:text-lg md:px-10"
+                >
+                  Login
+                </Link>
               </>
             )}
           </div>
@@ -146,7 +128,7 @@ const Home: React.FC = () => {
       </div>
 
       {/* Features Section */}
-      <div className="py-16 bg-gray-50">
+      <div className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
@@ -202,7 +184,7 @@ const Home: React.FC = () => {
             </p>
           </div>
 
-          <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0">
+          <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {subscriptionPlans.map((plan) => (
               <div
                 key={plan.id}
@@ -232,7 +214,7 @@ const Home: React.FC = () => {
                     </Link>
                   </div>
                 </div>
-                <div className="px-6 pt-6 pb-8 bg-white">
+                <div className="px-6 pt-6 pb-8">
                   <h4 className="text-sm font-semibold text-gray-900 tracking-wide uppercase">What's included</h4>
                   <ul className="mt-6 space-y-4">
                     {plan.features.map((feature, index) => (
@@ -311,34 +293,32 @@ const Home: React.FC = () => {
                     onChange={(e) => setPreferredPlan(e.target.value)}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   >
-                    <option value="1">Basic Plan</option>
-                    <option value="2">Premium Plan</option>
-                    <option value="3">Pro Plan</option>
+                    {subscriptionPlans.map((plan) => (
+                      <option key={plan.id} value={plan.id}>
+                        {plan.name} (${plan.price}/month)
+                      </option>
+                    ))}
                   </select>
                 </div>
-              </div>
-
-              {submitError && (
-                <div className="mt-4 text-red-600 text-sm">
-                  {submitError}
+                {submitError && (
+                  <div className="text-red-500 text-sm">{submitError}</div>
+                )}
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowWaitlistForm(false)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Submitting...' : 'Join Waitlist'}
+                  </button>
                 </div>
-              )}
-
-              <div className="mt-6 flex gap-3">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 bg-blue-600 text-white rounded-md py-2 px-4 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-                >
-                  {isSubmitting ? 'Joining...' : 'Join Waitlist'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowWaitlistForm(false)}
-                  className="flex-1 bg-gray-100 text-gray-700 rounded-md py-2 px-4 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                >
-                  Cancel
-                </button>
               </div>
             </form>
           </div>
