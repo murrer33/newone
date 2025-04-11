@@ -104,44 +104,46 @@ const Home: React.FC = () => {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <div className="relative bg-gray-900">
-        <div className="absolute inset-0">
-          <img 
-            className="w-full h-full object-cover opacity-30"
-            src="https://images.unsplash.com/photo-1640340434771-5e72dc61728a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1964&q=80" 
-            alt="Stock market chart"
-          />
-        </div>
-        <div className="relative px-4 py-24 mx-auto max-w-7xl sm:px-6 lg:px-8 flex flex-col items-center text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-            AI-Powered Stock Predictions
-          </h1>
-          <p className="mt-6 text-xl text-gray-300 max-w-3xl">
-            Finpulses.tech uses advanced machine learning algorithms to analyze market trends and provide accurate stock predictions to help you make better investment decisions.
-          </p>
-          <div className="mt-10 flex flex-col sm:flex-row gap-4">
-            {submitSuccess ? (
-              <div className="bg-green-100 text-green-800 p-4 rounded-lg shadow-md">
-                <p className="font-medium">You've joined our waitlist!</p>
-                <p>We'll notify you when you get access.</p>
+      <div className="relative overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <div className="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
+            <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+              <div className="sm:text-center lg:text-left">
+                <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
+                  <span className="block xl:inline">AI-Powered</span>{' '}
+                  <span className="block text-blue-600 xl:inline">Stock Analysis</span>
+                </h1>
+                <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+                  Get real-time insights, technical analysis, and AI predictions to make better investment decisions.
+                </p>
+                <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+                  <div className="rounded-md shadow">
+                    <button
+                      onClick={() => setShowWaitlistForm(true)}
+                      className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10"
+                    >
+                      Join Waitlist
+                    </button>
+                  </div>
+                  <div className="mt-3 sm:mt-0 sm:ml-3">
+                    <Link
+                      to="/demo-stock"
+                      className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 md:py-4 md:text-lg md:px-10"
+                    >
+                      Try Demo
+                    </Link>
+                  </div>
+                </div>
               </div>
-            ) : (
-              <>
-                <button
-                  onClick={() => setShowWaitlistForm(true)}
-                  className="px-8 py-3 text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10"
-                >
-                  Join Waitlist
-                </button>
-                <Link
-                  to="/login"
-                  className="px-8 py-3 text-base font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
-                >
-                  Sign In
-                </Link>
-              </>
-            )}
+            </main>
           </div>
+        </div>
+        <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
+          <img
+            className="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full"
+            src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80"
+            alt="Stock market visualization"
+          />
         </div>
       </div>
 
@@ -241,15 +243,23 @@ const Home: React.FC = () => {
                     <span className="text-4xl font-extrabold text-gray-900">${plan.price}</span>
                     <span className="text-base font-medium text-gray-500">/month</span>
                   </p>
-                  <button
-                    onClick={() => {
-                      setPreferredPlan(plan.id.toString());
-                      setShowWaitlistForm(true);
-                    }}
-                    className="mt-8 block w-full bg-blue-600 text-white rounded-md py-2 font-medium text-center hover:bg-blue-700"
-                  >
-                    Join Waitlist
-                  </button>
+                  <div className="mt-8 flex flex-col gap-4">
+                    <button
+                      onClick={() => {
+                        setPreferredPlan(plan.id.toString());
+                        setShowWaitlistForm(true);
+                      }}
+                      className="bg-blue-600 text-white rounded-md px-3 py-2 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                    >
+                      Join Waitlist
+                    </button>
+                    <Link
+                      to="/demo-stock"
+                      className="bg-blue-600 text-white rounded-md px-3 py-2 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600"
+                    >
+                      Try Demo
+                    </Link>
+                  </div>
                 </div>
                 <div className="px-6 pt-6 pb-8 bg-white">
                   <h4 className="text-sm font-semibold text-gray-900 tracking-wide uppercase">What's included</h4>

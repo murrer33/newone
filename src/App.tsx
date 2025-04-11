@@ -20,6 +20,8 @@ import DatabaseCheck from "./components/DatabaseCheck";
 import { useWaitlistCheck } from './utils/waitlistCheck';
 import WaitlistPage from './pages/WaitlistPage';
 import PaymentSuccess from "./pages/PaymentSuccess";
+import DemoStock from "./pages/DemoStock";
+import Navbar from './components/Navbar';
 
 const WaitlistWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Use the waitlist check hook to handle redirects
@@ -49,11 +51,12 @@ function App() {
                 <DatabaseCheck />
                 
                 <div className="min-h-screen bg-gray-100">
+                  <Navbar />
                   <Routes>
                     {/* Public Routes - Accessible without authentication */}
                     <Route path="/home" element={<Home />} />
                     <Route path="/waitlist" element={<WaitlistPage />} />
-                    <Route path="/" element={<Home />} />
+                    <Route path="/demo-stock" element={<DemoStock />} />
 
                     {/* Auth Routes */}
                     <Route path="/login" element={<Login />} />
