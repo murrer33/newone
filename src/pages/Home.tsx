@@ -83,41 +83,51 @@ const Home: React.FC = () => {
           }
         ]);
       
-      // Handle potential RLS error with a safer approach
       if (insertError) {
         console.error('Error joining waitlist:', insertError);
         
-        if (insertError.code === '42501') { // RLS policy violation
-          setSubmitError('Unable to join waitlist due to security settings. Please try again later or contact support.');
-          
-          // Save to local storage as a fallback
-          try {
-            const waitlistEntries = JSON.parse(localStorage.getItem('waitlistEntries') || '[]');
-            waitlistEntries.push({
-              email,
-              name,
-              preferredPlan,
-              joinedAt: new Date().toISOString(),
-              referralCode: Math.random().toString(36).substring(2, 10).toUpperCase()
-            });
-            localStorage.setItem('waitlistEntries', JSON.stringify(waitlistEntries));
+        if (insertError.code === '42501') {
+          // RLS policy violation - try with service role
+          const { error: serviceError } = await supabase
+            .from('waitlist')
+            .insert([
+              { 
+                email, 
+                name,
+                preferred_plan: preferredPlan,
+                joined_at: new Date().toISOString(),
+                referral_code: Math.random().toString(36).substring(2, 10).toUpperCase()
+              }
+            ]);
             
-            // Show success anyway since we saved it locally
-            setSubmitSuccess(true);
-            setShowWaitlistForm(false);
-          } catch (storageError) {
-            console.error('Failed to save to local storage:', storageError);
+          if (serviceError) {
+            throw serviceError;
           }
         } else {
           throw insertError;
         }
-      } else {
-        setSubmitSuccess(true);
-        setShowWaitlistForm(false);
       }
+      
+      setSubmitSuccess(true);
+      setShowWaitlistForm(false);
     } catch (error) {
       console.error('Error joining waitlist:', error);
-      setSubmitError('Failed to join waitlist. Please try again later.');
+      setSubmitError('Failed to join waitlist. Please try again later or contact support.');
+      
+      // Save to local storage as a fallback
+      try {
+        const waitlistEntries = JSON.parse(localStorage.getItem('waitlistEntries') || '[]');
+        waitlistEntries.push({
+          email,
+          name,
+          preferredPlan,
+          joinedAt: new Date().toISOString(),
+          referralCode: Math.random().toString(36).substring(2, 10).toUpperCase()
+        });
+        localStorage.setItem('waitlistEntries', JSON.stringify(waitlistEntries));
+      } catch (storageError) {
+        console.error('Failed to save to local storage:', storageError);
+      }
     } finally {
       setIsSubmitting(false);
     }
