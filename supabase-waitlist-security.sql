@@ -21,8 +21,24 @@ CREATE INDEX IF NOT EXISTS idx_waitlist_referral_code ON public.waitlist(referra
 
 -- Allow anonymous access to the waitlist table for insertion only
 ALTER TABLE public.waitlist ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow anonymous insert to waitlist" ON public.waitlist
+
+-- Drop existing policies first
+DROP POLICY IF EXISTS "Allow anonymous insert to waitlist" ON public.waitlist;
+
+-- Create clear policy for anonymous users to insert
+CREATE POLICY "anon_insert_policy" ON public.waitlist
   FOR INSERT TO anon
+  WITH CHECK (true);
+  
+-- Create a policy to allow everyone to read the waitlist table
+CREATE POLICY "select_all_policy" ON public.waitlist
+  FOR SELECT
+  USING (true);
+
+-- Allow service role to do all operations
+CREATE POLICY "service_role_all_policy" ON public.waitlist
+  FOR ALL TO service_role
+  USING (true)
   WITH CHECK (true);
 
 -- Create a helper function to check if a user is not waitlisted
