@@ -63,10 +63,10 @@ export const submitToGoogleForm = async (
     
     // Since we're using no-cors, we won't get a meaningful response
     // So we'll assume success if no errors were thrown
-    console.log('Waitlist data submitted to Google Form');
+    console.log('Waitlist data submitted');
     return true;
   } catch (error) {
-    console.error('Error submitting to Google Form:', error);
+    console.error('Error submitting to Waitlist:', error);
     return false;
   }
 };
@@ -80,7 +80,7 @@ export const submitToGoogleForm = async (
  */
 export const getGoogleFormIframeUrl = (
   formData: WaitlistFormData,
-  googleFormId: string = 'your-google-form-id'
+  googleFormId: string = '1GLpJtOJ38PQvaa2BBU2rK3UyytNeTnTw9QiQ2YyRzr8'
 ): string => {
   // Get the pre-filled form URL with our data
   const formUrl = new URL(`https://docs.google.com/forms/d/e/${googleFormId}/viewform`);

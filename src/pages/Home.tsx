@@ -167,15 +167,15 @@ const Home: React.FC = () => {
           {/* Stats */}
           <div className="grid grid-cols-2 gap-8 mt-16 md:grid-cols-4 lg:mt-24">
             <div className="flex flex-col items-center">
-              <div className="text-4xl font-bold text-white">95%</div>
+              <div className="text-4xl font-bold text-white">90%</div>
               <div className="mt-2 text-sm text-blue-200">Prediction Accuracy</div>
             </div>
             <div className="flex flex-col items-center">
-              <div className="text-4xl font-bold text-white">10K+</div>
-              <div className="mt-2 text-sm text-blue-200">Active Users</div>
+              <div className="text-4xl font-bold text-white">1K+</div>
+              <div className="mt-2 text-sm text-blue-200">Waitlisted Users</div>
             </div>
             <div className="flex flex-col items-center">
-              <div className="text-4xl font-bold text-white">500+</div>
+              <div className="text-4xl font-bold text-white">50+</div>
               <div className="mt-2 text-sm text-blue-200">Supported Stocks</div>
             </div>
             <div className="flex flex-col items-center">
