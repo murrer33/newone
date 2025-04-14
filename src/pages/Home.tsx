@@ -1,444 +1,355 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { TrendingUp, Award, Shield, Zap, ChevronRight, ArrowRight } from 'lucide-react';
-import { useSubscription } from '../context/SubscriptionContext';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, LineChart, BarChart3, TrendingUp, BarChart, Zap, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../services/supabaseClient';
 
-// Fallback plans in case the subscription context isn't available
-const fallbackPlans = [
-  {
-    id: 'basic',
-    name: 'Basic Plan',
-    price: 9.99,
-    features: ['Basic stock analysis', 'Daily market updates', 'Limited API calls', 'Email support']
-  },
-  {
-    id: 'intermediate',
-    name: 'Intermediate Plan',
-    price: 19.99,
-    features: ['Advanced stock analysis', 'Real-time market data', 'Technical indicators', 'Portfolio tracking', 'Priority email support']
-  },
-  {
-    id: 'advanced',
-    name: 'Advanced Plan',
-    price: 29.99,
-    features: ['Premium stock analysis', 'AI predictions', 'Unlimited API calls', 'Priority support', 'Custom alerts', 'Sentiment analysis', 'Market insights']
-  }
-];
+// Import logo if available in assets
+import logo from '../assets/logo.svg';
 
 const Home: React.FC = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
-  
-  // Try to get subscription plans from context, fall back to local data if error
-  let subscriptionPlans = fallbackPlans;
-  try {
-    const { subscriptionPlans: contextPlans } = useSubscription();
-    if (contextPlans && contextPlans.length > 0) {
-      subscriptionPlans = contextPlans;
-    }
-  } catch (error) {
-    console.warn('Subscription context not available, using fallback plans');
-  }
-
-  const [showWaitlistForm, setShowWaitlistForm] = useState(false);
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [preferredPlan, setPreferredPlan] = useState('1'); // Default to Free Plan
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [activeCard, setActiveCard] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (submitSuccess) {
-      const timer = setTimeout(() => {
-        setSubmitSuccess(false);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [submitSuccess]);
-
-  const handleWaitlistSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email) {
-      setSubmitError('Email is required');
-      return;
-    }
-    
-    try {
-      setIsSubmitting(true);
-      setSubmitError(null);
-      
-      // Try to add to waitlist table
-      const { error: insertError } = await supabase
-        .from('waitlist')
-        .insert([
-          { 
-            email, 
-            name,
-            preferred_plan: preferredPlan,
-            joined_at: new Date().toISOString(),
-            referral_code: Math.random().toString(36).substring(2, 10).toUpperCase()
-          }
-        ]);
-      
-      if (insertError) {
-        console.error('Error joining waitlist:', insertError);
-        setSubmitError('Failed to join waitlist. Please try again later or contact support.');
-        
-        // Save to local storage as a fallback
-        try {
-          const waitlistEntries = JSON.parse(localStorage.getItem('waitlistEntries') || '[]');
-          waitlistEntries.push({
-            email,
-            name,
-            preferredPlan,
-            joinedAt: new Date().toISOString(),
-            referralCode: Math.random().toString(36).substring(2, 10).toUpperCase()
-          });
-          localStorage.setItem('waitlistEntries', JSON.stringify(waitlistEntries));
-        } catch (storageError) {
-          console.error('Failed to save to local storage:', storageError);
-        }
-      } else {
-        setSubmitSuccess(true);
-        setShowWaitlistForm(false);
-      }
-    } catch (error) {
-      console.error('Error joining waitlist:', error);
-      setSubmitError('Failed to join waitlist. Please try again later or contact support.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className="bg-white min-h-screen overflow-hidden">
+    <div className="bg-gray-50 min-h-screen">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-gray-900 to-blue-900">
-        <div className="absolute inset-0">
-          <img 
-            className="w-full h-full object-cover opacity-20 mix-blend-overlay"
-            src="https://images.unsplash.com/photo-1640340434771-5e72dc61728a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1964&q=80" 
-            alt="Stock market chart"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 via-gray-900/60 to-transparent"></div>
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-900 via-indigo-900 to-gray-900">
+        {/* Animated background */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1639762681057-408e52192e55?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2232&q=80')] bg-cover bg-center"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-blue-900/70 via-indigo-900/60 to-gray-900/80"></div>
         </div>
-        <div className="relative px-4 py-32 mx-auto max-w-7xl sm:px-6 lg:px-8 flex flex-col items-center text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl drop-shadow-md">
-            <span className="block bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-300">
-              AI-Powered Stock Predictions
+        
+        {/* Navigation */}
+        <nav className="relative z-10 px-6 py-6 lg:px-8">
+          <div className="flex items-center justify-between mx-auto max-w-7xl">
+            <div className="flex items-center">
+              <img src={logo} alt="FinPulses" className="h-10 md:h-12" />
+              <span className="ml-3 text-xl font-bold text-white">FinPulses</span>
+            </div>
+            <div className="flex space-x-2 md:space-x-4">
+              <Link 
+                to="/pricing" 
+                className="px-3 py-2 text-sm font-medium text-white rounded-md hover:bg-white/10 transition-colors"
+              >
+                Pricing
+              </Link>
+              <Link 
+                to="/faq" 
+                className="px-3 py-2 text-sm font-medium text-white rounded-md hover:bg-white/10 transition-colors"
+              >
+                FAQ
+              </Link>
+              {user ? (
+                <Link 
+                  to="/dashboard" 
+                  className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <Link 
+                  to="/login" 
+                  className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Login
+                </Link>
+              )}
+            </div>
+          </div>
+        </nav>
+
+        {/* Hero Content */}
+        <div className="relative flex flex-col items-center px-6 py-24 mx-auto text-center max-w-7xl lg:py-32">
+          <h1 className="text-4xl font-extrabold tracking-tight text-white md:text-5xl lg:text-6xl">
+            <span className="block">AI-Powered</span>
+            <span className="block mt-2 bg-gradient-to-r from-blue-400 to-purple-300 bg-clip-text text-transparent">
+              Stock Market Predictions
             </span>
           </h1>
-          <p className="mt-6 text-xl text-gray-200 max-w-3xl leading-relaxed drop-shadow">
-            Finpulses.tech uses advanced machine learning algorithms to analyze market trends and provide accurate stock predictions to help you make better investment decisions.
+          <p className="max-w-2xl mt-6 text-xl text-gray-300">
+            Make smarter investment decisions with our AI-powered stock analysis platform.
+            Get real-time insights, predictions, and custom recommendations.
           </p>
-          <div className="mt-10 flex flex-col sm:flex-row gap-5 w-full max-w-md mx-auto">
-            {submitSuccess ? (
-              <div className="bg-green-100 text-green-800 p-6 rounded-lg shadow-xl animate-fade-in">
-                <p className="font-medium text-lg">You've joined our waitlist!</p>
-                <p>We'll notify you when you get access.</p>
-              </div>
-            ) : user ? (
-              <>
-                <Link
-                  to="/dashboard"
-                  className="px-8 py-4 text-base font-medium rounded-lg text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-lg transform transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl w-full sm:w-auto flex items-center justify-center"
-                >
-                  Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-                <Link
-                  to="/demo-stock"
-                  className="px-8 py-4 text-base font-medium rounded-lg text-blue-600 bg-white hover:bg-gray-50 shadow-lg transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl flex items-center justify-center w-full sm:w-auto"
-                >
-                  Try Demo <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={() => setShowWaitlistForm(true)}
-                  className="px-8 py-4 text-base font-medium rounded-lg text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-lg transform transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl w-full sm:w-auto"
-                >
-                  Join Waitlist
-                </button>
-                <Link
-                  to="/demo-stock"
-                  className="px-8 py-4 text-base font-medium rounded-lg text-blue-600 bg-white hover:bg-gray-50 shadow-lg transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl flex items-center justify-center w-full sm:w-auto"
-                >
-                  Try Demo <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-                <Link
-                  to="/login"
-                  className="px-8 py-4 text-base font-medium rounded-lg text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 shadow-lg transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl flex items-center justify-center w-full sm:w-auto"
-                >
-                  Login <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </>
-            )}
+          <div className="flex flex-col justify-center w-full gap-4 mt-10 sm:flex-row sm:max-w-lg">
+            <Link
+              to="/demo-stock"
+              className="flex items-center justify-center px-8 py-4 text-base font-medium text-blue-700 bg-white rounded-lg shadow-md hover:bg-gray-100 transition-all"
+            >
+              Try Demo <ArrowRight className="ml-2 w-5 h-5" />
+            </Link>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all"
+            >
+              Join Waitlist <ArrowRight className="ml-2 w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-8 mt-16 md:grid-cols-4 lg:mt-24">
+            <div className="flex flex-col items-center">
+              <div className="text-4xl font-bold text-white">95%</div>
+              <div className="mt-2 text-sm text-blue-200">Prediction Accuracy</div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="text-4xl font-bold text-white">10K+</div>
+              <div className="mt-2 text-sm text-blue-200">Active Users</div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="text-4xl font-bold text-white">500+</div>
+              <div className="mt-2 text-sm text-blue-200">Supported Stocks</div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="text-4xl font-bold text-white">24/7</div>
+              <div className="mt-2 text-sm text-blue-200">Real-time Updates</div>
+            </div>
           </div>
         </div>
-        <div className="absolute bottom-0 w-full h-16 bg-gradient-to-t from-white to-transparent"></div>
+        
+        {/* Wave Divider */}
+        <div className="absolute bottom-0 left-0 right-0">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="w-full h-auto">
+            <path fill="#F9FAFB" fillOpacity="1" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,224C672,245,768,267,864,261.3C960,256,1056,224,1152,218.7C1248,213,1344,235,1392,245.3L1440,256L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+          </svg>
+        </div>
       </div>
 
       {/* Features Section */}
-      <div className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              Why Choose Finpulses?
+      <div className="py-24">
+        <div className="px-6 mx-auto max-w-7xl lg:px-8">
+          <div className="max-w-2xl mx-auto text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+              Advanced Features for Smart Investors
             </h2>
-            <p className="mt-4 text-xl text-gray-500 max-w-3xl mx-auto">
-              Get ahead in the market with our cutting-edge features
+            <p className="mt-6 text-lg leading-8 text-gray-600">
+              FinPulses combines artificial intelligence with deep market analysis to give you the edge in your investment decisions.
             </p>
           </div>
-
-          <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-              <div className="text-blue-600 mb-6 p-3 bg-blue-50 rounded-lg inline-flex">
-                <TrendingUp size={28} />
+          
+          <div className="grid max-w-5xl grid-cols-1 mx-auto mt-16 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="flex flex-col">
+              <div className="flex items-center justify-center w-12 h-12 mb-4 rounded-lg bg-blue-100">
+                <LineChart className="w-6 h-6 text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">AI Predictions</h3>
-              <p className="text-gray-500 leading-relaxed">Advanced algorithms predict market trends with high accuracy, giving you insights before the market moves.</p>
+              <h3 className="text-lg font-semibold text-gray-900">AI Price Predictions</h3>
+              <p className="mt-2 text-gray-600">
+                Our AI models analyze historical data and market sentiment to predict future stock movements with high accuracy.
+              </p>
             </div>
-            <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-              <div className="text-blue-600 mb-6 p-3 bg-blue-50 rounded-lg inline-flex">
-                <Award size={28} />
+            
+            <div className="flex flex-col">
+              <div className="flex items-center justify-center w-12 h-12 mb-4 rounded-lg bg-blue-100">
+                <BarChart3 className="w-6 h-6 text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Expert Analysis</h3>
-              <p className="text-gray-500 leading-relaxed">Get insights from market experts and seasoned analysts who track market movements daily.</p>
+              <h3 className="text-lg font-semibold text-gray-900">Technical Analysis</h3>
+              <p className="mt-2 text-gray-600">
+                Get comprehensive technical indicators and patterns detection to inform your trading strategies.
+              </p>
             </div>
-            <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-              <div className="text-blue-600 mb-6 p-3 bg-blue-50 rounded-lg inline-flex">
-                <Shield size={28} />
+            
+            <div className="flex flex-col">
+              <div className="flex items-center justify-center w-12 h-12 mb-4 rounded-lg bg-blue-100">
+                <TrendingUp className="w-6 h-6 text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Risk Management</h3>
-              <p className="text-gray-500 leading-relaxed">Advanced tools to help you manage and minimize risks through diversification strategies and alerts.</p>
+              <h3 className="text-lg font-semibold text-gray-900">Trend Identification</h3>
+              <p className="mt-2 text-gray-600">
+                Identify emerging market trends before they become obvious to the majority of investors.
+              </p>
             </div>
-            <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-              <div className="text-blue-600 mb-6 p-3 bg-blue-50 rounded-lg inline-flex">
-                <Zap size={28} />
+            
+            <div className="flex flex-col">
+              <div className="flex items-center justify-center w-12 h-12 mb-4 rounded-lg bg-blue-100">
+                <BarChart className="w-6 h-6 text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Real-time Updates</h3>
-              <p className="text-gray-500 leading-relaxed">Get instant notifications about market changes and important stock movements as they happen.</p>
+              <h3 className="text-lg font-semibold text-gray-900">Sentiment Analysis</h3>
+              <p className="mt-2 text-gray-600">
+                Analyze news, social media, and market sentiment to gauge investor emotions and their impact on stocks.
+              </p>
+            </div>
+            
+            <div className="flex flex-col">
+              <div className="flex items-center justify-center w-12 h-12 mb-4 rounded-lg bg-blue-100">
+                <Zap className="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Real-time Alerts</h3>
+              <p className="mt-2 text-gray-600">
+                Get instant notifications about significant price movements, pattern formations, or unusual activity.
+              </p>
+            </div>
+            
+            <div className="flex flex-col">
+              <div className="flex items-center justify-center w-12 h-12 mb-4 rounded-lg bg-blue-100">
+                <Shield className="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Risk Assessment</h3>
+              <p className="mt-2 text-gray-600">
+                Evaluate potential risks and rewards with our advanced risk assessment tools and portfolio analysis.
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Subscription Plans */}
-      <div className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              Subscription Plans
+      {/* Testimonials Section */}
+      <div className="py-24 bg-gradient-to-b from-gray-50 to-white">
+        <div className="px-6 mx-auto max-w-7xl lg:px-8">
+          <div className="max-w-xl mx-auto text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900">
+              What Our Users Say
             </h2>
-            <p className="mt-4 text-xl text-gray-500 max-w-3xl mx-auto">
-              Choose the right plan for your investment needs
+            <p className="mt-6 text-lg leading-8 text-gray-600">
+              Join thousands of investors who are already benefiting from our AI-powered predictions.
             </p>
           </div>
-
-          <div className="mt-12 space-y-8 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-8 lg:max-w-5xl lg:mx-auto">
-            {subscriptionPlans.map((plan) => (
-              <div
-                key={plan.id}
-                className={`border border-gray-200 rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 ${activeCard === plan.id ? 'scale-105 shadow-xl border-blue-200 ring-2 ring-blue-400' : 'hover:shadow-xl hover:scale-[1.02]'}`}
-                onMouseEnter={() => setActiveCard(plan.id)}
-                onMouseLeave={() => setActiveCard(null)}
-              >
-                <div className="p-8 bg-white">
-                  <h3 className="text-2xl font-bold text-gray-900">{plan.name}</h3>
-                  <p className="mt-6 flex items-baseline">
-                    <span className="text-5xl font-extrabold text-gray-900">${plan.price}</span>
-                    <span className="ml-2 text-base font-medium text-gray-500">/month</span>
-                  </p>
-                  <div className="mt-8 space-y-4">
-                    {user ? (
-                      <>
-                        <Link
-                          to="/dashboard"
-                          className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-lg shadow-md font-semibold text-center transition-all duration-200 flex items-center justify-center"
-                        >
-                          View Dashboard <ChevronRight className="ml-1 h-4 w-4" />
-                        </Link>
-                        <Link
-                          to="/demo-stock"
-                          className="w-full py-3 px-4 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg shadow-sm font-semibold text-center transition-all duration-200 flex items-center justify-center"
-                        >
-                          Try Demo
-                        </Link>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          onClick={() => {
-                            setPreferredPlan(plan.id.toString());
-                            setShowWaitlistForm(true);
-                          }}
-                          className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-lg shadow-md font-semibold text-center transition-all duration-200 flex items-center justify-center"
-                        >
-                          Join Waitlist <ChevronRight className="ml-1 h-4 w-4" />
-                        </button>
-                        <Link
-                          to="/demo-stock"
-                          className="w-full py-3 px-4 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg shadow-sm font-semibold text-center transition-all duration-200 flex items-center justify-center"
-                        >
-                          Try Demo
-                        </Link>
-                        <Link
-                          to="/login"
-                          className="w-full py-3 px-4 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 border border-indigo-200 rounded-lg shadow-sm font-semibold text-center transition-all duration-200 flex items-center justify-center"
-                        >
-                          Already have access? Login
-                        </Link>
-                      </>
-                    )}
-                  </div>
-                </div>
-                <div className="px-8 pt-6 pb-8 bg-gray-50">
-                  <h4 className="text-sm font-semibold text-gray-900 tracking-wide uppercase">What's included</h4>
-                  <ul className="mt-6 space-y-5">
-                    {plan.features.map((feature, index) => (
-                      <li key={index} className="flex items-start">
-                        <div className="flex-shrink-0">
-                          <Zap className="h-5 w-5 text-green-500" />
-                        </div>
-                        <p className="ml-3 text-base text-gray-700">{feature}</p>
-                      </li>
-                    ))}
-                  </ul>
+          <div className="grid max-w-4xl grid-cols-1 mx-auto mt-16 gap-8 sm:grid-cols-2">
+            <div className="p-6 bg-white rounded-xl shadow-sm ring-1 ring-gray-200">
+              <p className="text-gray-700">
+                "FinPulses has completely transformed how I approach stock investments. The AI predictions have been remarkably accurate and helped me maximize my returns."
+              </p>
+              <div className="flex items-center mt-6">
+                <div className="w-10 h-10 bg-blue-600 rounded-full"></div>
+                <div className="ml-3">
+                  <p className="font-medium text-gray-900">Michael K.</p>
+                  <p className="text-sm text-gray-500">Day Trader</p>
                 </div>
               </div>
-            ))}
+            </div>
+            <div className="p-6 bg-white rounded-xl shadow-sm ring-1 ring-gray-200">
+              <p className="text-gray-700">
+                "The technical analysis tools are outstanding. I can quickly identify trends and patterns that would have taken hours to spot manually."
+              </p>
+              <div className="flex items-center mt-6">
+                <div className="w-10 h-10 bg-indigo-600 rounded-full"></div>
+                <div className="ml-3">
+                  <p className="font-medium text-gray-900">Sarah L.</p>
+                  <p className="text-sm text-gray-500">Portfolio Manager</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* CTA Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800">
-        <div className="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8 lg:flex lg:items-center lg:justify-between">
-          <h2 className="text-3xl font-extrabold tracking-tight text-white md:text-4xl">
-            <span className="block">Ready to boost your investments?</span>
-            <span className="block mt-2 text-blue-200">Start using Finpulses today.</span>
-          </h2>
-          <div className="mt-8 flex flex-col sm:flex-row gap-4 lg:mt-0 lg:flex-shrink-0">
-            {user ? (
-              <div className="inline-flex rounded-md shadow">
+      <div className="py-16 sm:py-24">
+        <div className="px-6 mx-auto max-w-7xl lg:px-8">
+          <div className="px-6 py-12 mx-auto max-w-4xl bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl sm:py-16 sm:px-12 lg:flex lg:items-center lg:gap-8">
+            <div className="max-w-xl mx-auto text-center lg:text-left lg:mx-0">
+              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                Ready to revolutionize your investment strategy?
+              </h2>
+              <p className="mt-4 text-lg text-indigo-100">
+                Join our waitlist today and be among the first to experience the future of AI-powered stock predictions.
+              </p>
+              <div className="flex flex-col items-center justify-center mt-8 lg:justify-start sm:flex-row sm:gap-4">
                 <Link
-                  to="/dashboard"
-                  className="inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 transition-all duration-200 transform hover:translate-y-[-2px]"
+                  to="/demo-stock"
+                  className="flex items-center justify-center w-full px-8 py-3 mb-4 text-base font-medium text-blue-700 bg-white rounded-md shadow-sm hover:bg-gray-100 sm:w-auto sm:mb-0"
                 >
-                  Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+                  Try Demo <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="flex items-center justify-center w-full px-8 py-3 text-base font-medium text-white bg-blue-800 rounded-md shadow-sm hover:bg-blue-900 sm:w-auto"
+                >
+                  Join Waitlist <ArrowRight className="ml-2 w-5 h-5" />
+                </button>
               </div>
-            ) : (
-              <>
-                <div className="inline-flex rounded-md shadow">
-                  <button
-                    onClick={() => setShowWaitlistForm(true)}
-                    className="inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 transition-all duration-200 transform hover:translate-y-[-2px]"
-                  >
-                    Join Waitlist <ArrowRight className="ml-2 h-4 w-4" />
-                  </button>
-                </div>
-                <div className="inline-flex rounded-md shadow">
-                  <Link
-                    to="/login"
-                    className="inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-all duration-200 transform hover:translate-y-[-2px]"
-                  >
-                    Login <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </div>
-              </>
-            )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Waitlist Form Modal */}
-      {showWaitlistForm && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 backdrop-blur-sm transition-all">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all animate-fade-in">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Join the Waitlist</h2>
-            <form onSubmit={handleWaitlistSubmit}>
-              <div className="space-y-5">
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    Email address
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 px-4 py-3"
-                    required
-                  />
-                </div>
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                    Name (optional)
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 px-4 py-3"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="plan" className="block text-sm font-medium text-gray-700 mb-1">
-                    Preferred Plan
-                  </label>
-                  <select
-                    id="plan"
-                    value={preferredPlan}
-                    onChange={(e) => setPreferredPlan(e.target.value)}
-                    className="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 px-4 py-3"
-                  >
-                    {subscriptionPlans.map((plan) => (
-                      <option key={plan.id} value={plan.id}>
-                        {plan.name} (${plan.price}/month)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {submitError && (
-                  <div className="bg-red-50 text-red-700 p-4 rounded-lg text-sm">
-                    {submitError}
-                  </div>
-                )}
-                <div className="flex justify-end space-x-4 mt-8">
-                  <button
-                    type="button"
-                    onClick={() => setShowWaitlistForm(false)}
-                    className="px-5 py-3 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="px-5 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-700 rounded-lg hover:from-blue-600 hover:to-blue-800 disabled:opacity-50 transition-colors flex items-center"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Submitting...
-                      </>
-                    ) : (
-                      'Join Waitlist'
-                    )}
-                  </button>
-                </div>
+      {/* Footer */}
+      <footer className="py-12 bg-gray-900">
+        <div className="px-6 mx-auto max-w-7xl lg:px-8">
+          <div className="flex flex-col items-center md:flex-row md:justify-between">
+            <div className="flex items-center">
+              <img src={logo} alt="FinPulses" className="h-8" />
+              <span className="ml-2 text-xl font-bold text-white">FinPulses</span>
+            </div>
+            <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 mt-8 md:mt-0">
+              <Link 
+                to="/pricing" 
+                className="text-sm text-gray-400 hover:text-white"
+              >
+                Pricing
+              </Link>
+              <Link 
+                to="/faq" 
+                className="text-sm text-gray-400 hover:text-white"
+              >
+                FAQ
+              </Link>
+              <Link 
+                to="/terms" 
+                className="text-sm text-gray-400 hover:text-white"
+              >
+                Terms of Service
+              </Link>
+              <Link 
+                to="/privacy" 
+                className="text-sm text-gray-400 hover:text-white"
+              >
+                Privacy Policy
+              </Link>
+            </div>
+          </div>
+          <div className="pt-8 mt-8 text-sm text-center text-gray-500 border-t border-gray-800">
+            &copy; {new Date().getFullYear()} FinPulses.tech. All rights reserved.
+          </div>
+        </div>
+      </footer>
+
+      {/* Waitlist Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70 backdrop-blur-sm">
+          <div className="relative w-full max-w-md p-8 bg-white rounded-2xl shadow-xl">
+            <button 
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <h2 className="text-2xl font-bold text-gray-900">Join the Waitlist</h2>
+            <p className="mt-2 text-gray-600">
+              Be the first to access our AI-powered stock prediction platform when it launches.
+            </p>
+            <form className="mt-6">
+              <div className="mb-4">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  Email address
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  className="block w-full px-4 py-3 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="you@example.com"
+                  required
+                />
               </div>
+              <div className="mb-4">
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  Name (optional)
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  className="block w-full px-4 py-3 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Your name"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full px-6 py-3 mt-4 text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-md shadow-sm hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                Join Waitlist
+              </button>
             </form>
           </div>
         </div>

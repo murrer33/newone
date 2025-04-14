@@ -1,285 +1,314 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../services/supabaseClient';
-import { getCurrentUserWaitlistStatus } from '../utils/waitlistCheck';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowRight, Check, ChevronRight } from 'lucide-react';
+import { supabase } from '../services/supabaseClient';
+import logo from '../assets/logo.svg';
 
 const WaitlistPage: React.FC = () => {
-  const [email, setEmail] = useState<string>('');
-  const [name, setName] = useState<string>('');
-  const [userId, setUserId] = useState<string | null>(null);
-  const [waitPosition, setWaitPosition] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isWaitlisted, setIsWaitlisted] = useState<boolean>(true);
-  const [referralCode, setReferralCode] = useState<string>('');
-  const [joinEmail, setJoinEmail] = useState<string>('');
-  const [joinName, setJoinName] = useState<string>('');
-  const [isJoining, setIsJoining] = useState<boolean>(false);
-  const [joinSuccess, setJoinSuccess] = useState<boolean>(false);
-  const [joinError, setJoinError] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [preferredPlan, setPreferredPlan] = useState('basic');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Get current user
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          setIsAuthenticated(false);
-          setIsLoading(false);
-          return;
-        }
+  const plans = [
+    {
+      id: 'basic',
+      name: 'Basic Plan',
+      price: 9.99,
+      features: [
+        'AI-powered stock predictions',
+        'Basic technical indicators',
+        'Daily market updates',
+        'Limited API calls'
+      ]
+    },
+    {
+      id: 'pro',
+      name: 'Pro Plan',
+      price: 19.99,
+      features: [
+        'Everything in Basic',
+        'Advanced technical indicators',
+        'Real-time market data',
+        'Portfolio tracking',
+        'Priority support'
+      ]
+    },
+    {
+      id: 'enterprise',
+      name: 'Enterprise Plan',
+      price: 29.99,
+      features: [
+        'Everything in Pro',
+        'Custom AI models',
+        'Unlimited API calls',
+        'Dedicated account manager',
+        'Custom integrations',
+        'Advanced risk assessment'
+      ]
+    }
+  ];
 
-        // User is authenticated
-        setIsAuthenticated(true);
-        
-        // Set user ID
-        setUserId(session.user.id);
-        
-        // Get user profile data
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('email, display_name, referral_id, waitlist_position')
-          .eq('uid', session.user.id)
-          .single();
-
-        if (userError) throw userError;
-
-        if (userData) {
-          setEmail(userData.email || '');
-          setName(userData.display_name || '');
-          setWaitPosition(userData.waitlist_position || null);
-          setReferralCode(userData.referral_id || '');
-        }
-
-        // Check waitlist status
-        const waitlisted = await getCurrentUserWaitlistStatus();
-        setIsWaitlisted(waitlisted);
-      } catch (error) {
-        console.error('Error loading user data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadUserData();
-  }, []);
-
-  const copyReferralLink = () => {
-    const referralLink = `${window.location.origin}/register?ref=${referralCode}`;
-    navigator.clipboard.writeText(referralLink);
-    alert('Referral link copied to clipboard!');
-  };
-
-  const handleJoinWaitlist = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!joinEmail) {
-      setJoinError('Email is required');
+    if (!email) {
+      setError('Email is required');
       return;
     }
     
+    setIsSubmitting(true);
+    setError(null);
+    
     try {
-      setIsJoining(true);
-      setJoinError(null);
-      
-      // First, check if the email already exists
-      const { data: existingUser, error: checkError } = await supabase
-        .from('waitlist')
-        .select('email')
-        .eq('email', joinEmail)
-        .maybeSingle();
-      
-      if (existingUser) {
-        setJoinError('This email is already on the waitlist');
-        return;
-      }
-      
-      // Add to waitlist table (you need to create this table in Supabase)
+      // Try to add to waitlist table
       const { error: insertError } = await supabase
         .from('waitlist')
         .insert([
           { 
-            email: joinEmail, 
-            name: joinName,
+            email, 
+            name,
+            preferred_plan: preferredPlan,
             joined_at: new Date().toISOString(),
             referral_code: Math.random().toString(36).substring(2, 10).toUpperCase()
           }
         ]);
       
-      if (insertError) throw insertError;
-      
-      setJoinSuccess(true);
-    } catch (error) {
-      console.error('Error joining waitlist:', error);
-      setJoinError('Failed to join waitlist. Please try again later.');
+      if (insertError) {
+        console.error('Error joining waitlist:', insertError);
+        setError('Failed to join waitlist. Please try again later or contact support.');
+        
+        // Save to local storage as a fallback
+        try {
+          const waitlistEntries = JSON.parse(localStorage.getItem('waitlistEntries') || '[]');
+          waitlistEntries.push({
+            email,
+            name,
+            preferredPlan,
+            joinedAt: new Date().toISOString(),
+            referralCode: Math.random().toString(36).substring(2, 10).toUpperCase()
+          });
+          localStorage.setItem('waitlistEntries', JSON.stringify(waitlistEntries));
+        } catch (storageError) {
+          console.error('Failed to save to local storage:', storageError);
+        }
+      } else {
+        setSubmitSuccess(true);
+        // Reset form
+        setEmail('');
+        setName('');
+        setPreferredPlan('basic');
+      }
+    } catch (err) {
+      console.error('Error submitting to waitlist:', err);
+      setError('An unexpected error occurred. Please try again later.');
     } finally {
-      setIsJoining(false);
+      setIsSubmitting(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  // Already authenticated but not waitlisted
-  if (isAuthenticated && !isWaitlisted) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Good news!</h1>
-          <p className="text-gray-600 mb-6">
-            You're no longer on the waitlist! You now have full access to the platform.
-          </p>
-          <a
-            href="/"
-            className="inline-block bg-blue-600 text-white font-medium py-3 px-6 rounded-lg shadow-md hover:bg-blue-700 transition duration-300"
-          >
-            Go to Dashboard
-          </a>
-        </div>
-      </div>
-    );
-  }
-
-  // Authenticated and waitlisted
-  if (isAuthenticated) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
-        <div className="max-w-lg w-full bg-white rounded-lg shadow-lg p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">You're on the waitlist!</h1>
-            <p className="text-gray-600">
-              Thank you for your interest in our platform. We're currently in beta and are gradually giving access to users.
-            </p>
-          </div>
-
-          <div className="bg-blue-50 rounded-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">Your Status</h2>
-            <div className="mb-4">
-              <p className="text-gray-700 mb-1"><span className="font-medium">Name:</span> {name}</p>
-              <p className="text-gray-700 mb-1"><span className="font-medium">Email:</span> {email}</p>
-              {waitPosition && (
-                <p className="text-gray-700 mb-1">
-                  <span className="font-medium">Waitlist Position:</span> {waitPosition}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="bg-green-50 rounded-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">Skip the Line!</h2>
-            <p className="text-gray-700 mb-4">
-              Refer friends to move up the waitlist. For each friend who joins using your referral link,
-              you'll move up in the queue!
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-3 mt-4">
-              <div className="flex-grow bg-white border border-gray-300 rounded-lg p-2 overflow-x-auto">
-                <code className="text-sm whitespace-nowrap">{`${window.location.origin}/register?ref=${referralCode}`}</code>
-              </div>
-              <button
-                onClick={copyReferralLink}
-                className="bg-green-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-green-700 transition duration-300 whitespace-nowrap"
-              >
-                Copy Link
-              </button>
-            </div>
-          </div>
-
-          <div className="text-center text-gray-600 text-sm">
-            <p>
-              We'll notify you by email when you're granted access. Thank you for your patience!
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Not authenticated - show join waitlist form
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Join Our Waitlist</h1>
-          <p className="text-gray-600">
-            Get early access to our platform. We're currently in beta and gradually onboarding new users.
-          </p>
-        </div>
-
-        {joinSuccess ? (
-          <div className="bg-green-50 p-6 rounded-lg text-center">
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">You're on the list!</h2>
-            <p className="text-gray-700 mb-6">
-              Thank you for joining our waitlist. We'll notify you by email when it's your turn to join!
-            </p>
-            <Link 
-              to="/login" 
-              className="inline-block bg-blue-600 text-white font-medium py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-300"
-            >
-              Sign In
+    <div className="min-h-screen bg-gradient-to-b from-indigo-900 to-blue-900">
+      {/* Header */}
+      <header className="px-6 py-6">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <Link to="/" className="flex items-center">
+            <img src={logo} alt="FinPulses" className="h-8" />
+            <span className="ml-2 text-xl font-bold text-white">FinPulses</span>
+          </Link>
+          <nav className="flex space-x-4">
+            <Link to="/demo-stock" className="text-white hover:text-blue-300 text-sm font-medium">
+              Try Demo
             </Link>
+            <Link to="/login" className="text-white hover:text-blue-300 text-sm font-medium">
+              Login
+            </Link>
+          </nav>
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+        {submitSuccess ? (
+          <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div className="p-8">
+              <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-full bg-green-100">
+                <Check className="w-8 h-8 text-green-600" />
+              </div>
+              <h1 className="mt-6 text-2xl font-bold text-center text-gray-900">
+                You're on the waitlist!
+              </h1>
+              <p className="mt-4 text-center text-gray-600">
+                Thank you for joining our waitlist! We're excited to share FinPulses with you when it's ready. 
+                We'll notify you at your email address when you've been granted access.
+              </p>
+              <div className="mt-8 flex flex-col space-y-3">
+                <Link 
+                  to="/" 
+                  className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                >
+                  Back to Home
+                </Link>
+                <Link 
+                  to="/demo-stock" 
+                  className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Try Demo <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </div>
+            </div>
           </div>
         ) : (
-          <form onSubmit={handleJoinWaitlist} className="space-y-6">
-            {joinError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg">
-                {joinError}
-              </div>
-            )}
-            
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address *
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={joinEmail}
-                onChange={(e) => setJoinEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                placeholder="your@email.com"
-                required
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Your Name
-              </label>
-              <input
-                id="name"
-                type="text"
-                value={joinName}
-                onChange={(e) => setJoinName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Jane Doe"
-              />
-            </div>
-            
-            <button
-              type="submit"
-              disabled={isJoining}
-              className="w-full bg-blue-600 text-white font-medium py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300 disabled:opacity-50"
-            >
-              {isJoining ? 'Joining...' : 'Join Waitlist'}
-            </button>
-            
-            <div className="text-center mt-4">
-              <p className="text-sm text-gray-600">
-                Already have an account?{' '}
-                <Link to="/login" className="text-blue-600 hover:text-blue-500">
-                  Sign in
-                </Link>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div className="flex flex-col justify-center">
+              <h1 className="text-4xl font-bold text-white tracking-tight sm:text-5xl">
+                Join the Future of Stock Analysis
+              </h1>
+              <p className="mt-6 text-xl text-blue-100">
+                Be among the first to access our AI-powered stock prediction platform. Sign up for our waitlist to get early access and exclusive offers.
               </p>
+              
+              <div className="mt-12 space-y-4">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-200">
+                    <Check className="w-5 h-5 text-blue-700" />
+                  </div>
+                  <p className="ml-4 text-blue-100">Advanced AI-powered stock predictions</p>
+                </div>
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-200">
+                    <Check className="w-5 h-5 text-blue-700" />
+                  </div>
+                  <p className="ml-4 text-blue-100">Real-time market data and analysis</p>
+                </div>
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-200">
+                    <Check className="w-5 h-5 text-blue-700" />
+                  </div>
+                  <p className="ml-4 text-blue-100">Technical indicators and sentiment analysis</p>
+                </div>
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-200">
+                    <Check className="w-5 h-5 text-blue-700" />
+                  </div>
+                  <p className="ml-4 text-blue-100">Priority access to new features</p>
+                </div>
+              </div>
             </div>
-          </form>
+            
+            <div>
+              <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div className="px-6 py-8">
+                  <h2 className="text-2xl font-bold text-gray-900">Join the Waitlist</h2>
+                  <p className="mt-2 text-gray-600">
+                    Sign up to be notified when we launch and get early access to our platform.
+                  </p>
+                  
+                  <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                        Email address <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        placeholder="you@example.com"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                        Name (optional)
+                      </label>
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        placeholder="John Doe"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="plan" className="block text-sm font-medium text-gray-700">
+                        Select a plan
+                      </label>
+                      <div className="mt-4 space-y-4">
+                        {plans.map((plan) => (
+                          <div key={plan.id} className="relative">
+                            <div 
+                              className={`
+                                border rounded-lg p-4 cursor-pointer
+                                ${preferredPlan === plan.id 
+                                  ? 'border-indigo-500 ring-2 ring-indigo-500' 
+                                  : 'border-gray-300 hover:border-indigo-300'}
+                              `}
+                              onClick={() => setPreferredPlan(plan.id)}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <h3 className="text-lg font-medium text-gray-900">{plan.name}</h3>
+                                  <p className="mt-1 text-gray-500">${plan.price}/month</p>
+                                </div>
+                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${preferredPlan === plan.id ? 'bg-indigo-500 border-transparent' : 'border-gray-300'}`}>
+                                  {preferredPlan === plan.id && <Check className="w-3 h-3 text-white" />}
+                                </div>
+                              </div>
+                              <ul className="mt-2 space-y-1">
+                                {plan.features.slice(0, 2).map((feature, index) => (
+                                  <li key={index} className="flex items-center text-sm text-gray-500">
+                                    <ChevronRight className="mr-2 h-3 w-3 text-indigo-400" />
+                                    {feature}
+                                  </li>
+                                ))}
+                                {plan.features.length > 2 && (
+                                  <li className="text-sm text-gray-500">And {plan.features.length - 2} more features</li>
+                                )}
+                              </ul>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {error && (
+                      <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+                        {error}
+                      </div>
+                    )}
+                    
+                    <div>
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Processing...
+                          </>
+                        ) : (
+                          'Join Waitlist'
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

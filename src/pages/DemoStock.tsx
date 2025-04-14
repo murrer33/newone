@@ -167,36 +167,101 @@ const DemoStock: React.FC = () => {
   };
 
   // Plan selection component
-  const PlanSelector = () => (
-    <div className="mb-8">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Choose Your Plan</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {(['free', 'plus', 'pro'] as Plan[]).map((plan) => (
-          <button
-            key={plan}
-            onClick={() => setSelectedPlan(plan)}
-            className={`p-4 rounded-lg border-2 transition-colors ${
-              selectedPlan === plan
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700'
-            }`}
-          >
-            <h3 className="text-lg font-semibold capitalize">{plan} Plan</h3>
-          </button>
-        ))}
+  const PlanSelector = () => {
+    const planFeatures = {
+      free: [
+        'Basic stock data',
+        'Daily price updates',
+        'Limited historical charts',
+        'Basic news feed'
+      ],
+      plus: [
+        'Everything in Free',
+        'Technical indicators',
+        'Stock comparison tool',
+        'Advanced charting',
+        'Extended historical data'
+      ],
+      pro: [
+        'Everything in Plus',
+        'AI-powered predictions',
+        'Sentiment analysis',
+        'Advanced screening tools',
+        'Portfolio optimization',
+        'Priority support'
+      ]
+    };
+
+    const planPrices = {
+      free: 'Free',
+      plus: '$9.99/mo',
+      pro: '$29.99/mo'
+    };
+
+    return (
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Choose Your Plan</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {(['free', 'plus', 'pro'] as Plan[]).map((plan) => (
+            <div
+              key={plan}
+              onClick={() => setSelectedPlan(plan)}
+              className={`p-6 rounded-lg border-2 transition-colors ${
+                selectedPlan === plan
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700'
+              } cursor-pointer`}
+            >
+              <h3 className="text-xl font-semibold capitalize mb-2">{plan} Plan</h3>
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-4">{planPrices[plan]}</p>
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2">
+                <ul className="space-y-2">
+                  {planFeatures[plan].map((feature, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="text-green-500 mr-2">✓</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <button
+                className={`mt-6 w-full py-2 px-4 rounded-md text-center text-sm font-medium ${
+                  selectedPlan === plan
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'
+                } transition-colors`}
+              >
+                {selectedPlan === plan ? 'Selected' : 'Select Plan'}
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Feature lock overlay
-  const FeatureLock = ({ feature }: { feature: string }) => (
-    <div className="absolute inset-0 bg-gray-900/50 dark:bg-gray-900/70 rounded-lg flex items-center justify-center">
-      <div className="text-center">
-        <Lock className="h-8 w-8 text-white mx-auto mb-2" />
-        <p className="text-white text-sm">Upgrade to {feature === 'technicalAnalysis' ? 'Plus' : 'Pro'} plan</p>
+  const FeatureLock = ({ feature }: { feature: string }) => {
+    const requiredPlan = feature === 'technicalAnalysis' ? 'plus' : 'pro';
+    
+    return (
+      <div className="absolute inset-0 bg-gray-900/60 dark:bg-gray-900/80 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
+        <div className="text-center bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg max-w-xs mx-auto">
+          <Lock className="h-10 w-10 text-blue-500 mx-auto mb-3" />
+          <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Premium Feature</h4>
+          <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+            This feature requires the {requiredPlan.charAt(0).toUpperCase() + requiredPlan.slice(1)} plan or higher
+          </p>
+          <button 
+            onClick={() => setSelectedPlan(requiredPlan)}
+            className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors"
+          >
+            Upgrade to {requiredPlan.charAt(0).toUpperCase() + requiredPlan.slice(1)}
+          </button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Add AskBid component
   const AskBid: React.FC<{ ask: number; bid: number; askSize: number; bidSize: number }> = ({ ask, bid, askSize, bidSize }) => {
@@ -268,8 +333,114 @@ const DemoStock: React.FC = () => {
           {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </button>
 
+        {/* Demo Banner */}
+        <div className="bg-blue-500 text-white py-2 px-4 rounded-md mb-6 flex items-center justify-between">
+          <div className="flex items-center">
+            <DollarSign className="h-5 w-5 mr-2" />
+            <span className="font-medium">Demo Mode: Experience our platform's features</span>
+          </div>
+          <a 
+            href="/waitlist" 
+            className="text-xs bg-white text-blue-600 hover:bg-blue-50 px-3 py-1 rounded-md transition-colors ml-2"
+          >
+            Join Waitlist
+          </a>
+        </div>
+
+        {/* Plans Section */}
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Experience FinPulses.tech</h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
+            Select a plan below to see how different features are unlocked. This demo gives you a preview of our powerful stock analysis platform.
+          </p>
+        </div>
+
         {/* Plan Selector */}
         <PlanSelector />
+
+        {/* Features explanation */}
+        <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Features Included In Each Plan</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <h3 className="font-medium text-blue-600 dark:text-blue-400 mb-2 flex items-center">
+                <Activity className="h-5 w-5 mr-2" />
+                Basic Stock Data
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                View real-time stock prices, basic charts, and company information.
+              </p>
+              <span className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 px-2 py-1 rounded">
+                Available in Free
+              </span>
+            </div>
+            
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <h3 className="font-medium text-blue-600 dark:text-blue-400 mb-2 flex items-center">
+                <BarChart3 className="h-5 w-5 mr-2" />
+                Technical Analysis
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                Access advanced technical indicators and pattern recognition tools.
+              </p>
+              <span className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 px-2 py-1 rounded">
+                Requires Plus Plan
+              </span>
+            </div>
+            
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <h3 className="font-medium text-blue-600 dark:text-blue-400 mb-2 flex items-center">
+                <TrendingUp className="h-5 w-5 mr-2" />
+                Stock Comparison
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                Compare multiple stocks side by side with custom metrics.
+              </p>
+              <span className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 px-2 py-1 rounded">
+                Requires Plus Plan
+              </span>
+            </div>
+            
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <h3 className="font-medium text-blue-600 dark:text-blue-400 mb-2 flex items-center">
+                <TrendingUp className="h-5 w-5 mr-2" />
+                Advanced Charts
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                Access extended timeframes and advanced chart tools and annotations.
+              </p>
+              <span className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 px-2 py-1 rounded">
+                Requires Plus Plan
+              </span>
+            </div>
+            
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <h3 className="font-medium text-blue-600 dark:text-blue-400 mb-2 flex items-center">
+                <Users className="h-5 w-5 mr-2" />
+                Sentiment Analysis
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                Analyze social media sentiment and market opinions in real-time.
+              </p>
+              <span className="text-xs bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100 px-2 py-1 rounded">
+                Requires Pro Plan
+              </span>
+            </div>
+            
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <h3 className="font-medium text-blue-600 dark:text-blue-400 mb-2 flex items-center">
+                <Scale className="h-5 w-5 mr-2" />
+                AI Predictions
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                Get AI-powered price predictions and trading recommendations.
+              </p>
+              <span className="text-xs bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100 px-2 py-1 rounded">
+                Requires Pro Plan
+              </span>
+            </div>
+          </div>
+        </div>
 
         {/* Market Status Header */}
         <MarketStatusHeader
