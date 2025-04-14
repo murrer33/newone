@@ -160,7 +160,7 @@ const DemoStock: React.FC = () => {
       case 'stockComparison':
         return selectedPlan !== 'free';
       case 'advancedChart':
-        return selectedPlan !== 'free';
+        return true;
       default:
         return true;
     }
@@ -171,15 +171,15 @@ const DemoStock: React.FC = () => {
     const planFeatures = {
       free: [
         'Basic stock data',
+        'Price charts with timeframes',
         'Daily price updates',
-        'Limited historical charts',
         'Basic news feed'
       ],
       plus: [
         'Everything in Free',
         'Technical indicators',
         'Stock comparison tool',
-        'Advanced charting',
+        'Advanced chart annotations',
         'Extended historical data'
       ],
       pro: [
@@ -404,13 +404,13 @@ const DemoStock: React.FC = () => {
             <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
               <h3 className="font-medium text-blue-600 dark:text-blue-400 mb-2 flex items-center">
                 <TrendingUp className="h-5 w-5 mr-2" />
-                Advanced Charts
+                Price Chart
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                Access extended timeframes and advanced chart tools and annotations.
+                View interactive price charts with customizable timeframes.
               </p>
-              <span className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 px-2 py-1 rounded">
-                Requires Plus Plan
+              <span className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 px-2 py-1 rounded">
+                Available in Free
               </span>
             </div>
             
@@ -437,6 +437,19 @@ const DemoStock: React.FC = () => {
               </p>
               <span className="text-xs bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100 px-2 py-1 rounded">
                 Requires Pro Plan
+              </span>
+            </div>
+
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <h3 className="font-medium text-blue-600 dark:text-blue-400 mb-2 flex items-center">
+                <TrendingUp className="h-5 w-5 mr-2" />
+                Advanced Charts
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                Access extended timeframes and advanced chart tools and annotations.
+              </p>
+              <span className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 px-2 py-1 rounded">
+                Requires Plus Plan
               </span>
             </div>
           </div>
@@ -513,7 +526,6 @@ const DemoStock: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 relative">
-              {!isFeatureAvailable('advancedChart') && <FeatureLock feature="advancedChart" />}
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Price Chart</h2>
                 <div className="flex space-x-2">
