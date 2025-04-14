@@ -288,8 +288,8 @@ const Home: React.FC = () => {
               <div className="flex items-center mt-6">
                 <div className="w-10 h-10 bg-blue-600 rounded-full"></div>
                 <div className="ml-3">
-                  <p className="font-medium text-gray-900">Michael K.</p>
-                  <p className="text-sm text-gray-500">Day Trader</p>
+                  <p className="font-medium text-gray-900">Umut A.</p>
+                  <p className="text-sm text-gray-500">Day Trader / CEO</p>
                 </div>
               </div>
             </div>
@@ -300,8 +300,8 @@ const Home: React.FC = () => {
               <div className="flex items-center mt-6">
                 <div className="w-10 h-10 bg-indigo-600 rounded-full"></div>
                 <div className="ml-3">
-                  <p className="font-medium text-gray-900">Sarah L.</p>
-                  <p className="text-sm text-gray-500">Portfolio Manager</p>
+                  <p className="font-medium text-gray-900">Murat P.</p>
+                  <p className="text-sm text-gray-500">9lumasa Manager</p>
                 </div>
               </div>
             </div>
