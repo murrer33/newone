@@ -54,6 +54,7 @@ function App() {
                   <Navbar />
                   <Routes>
                     {/* Public Routes - Accessible without authentication */}
+                    <Route path="/" element={<Home />} />
                     <Route path="/home" element={<Home />} />
                     <Route path="/waitlist" element={<WaitlistPage />} />
                     <Route path="/demo-stock" element={<DemoStock />} />

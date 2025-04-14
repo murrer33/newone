@@ -20,11 +20,11 @@ export interface WaitlistStatus {
  * @returns {WaitlistStatus} Waitlist status object
  */
 export const useWaitlistCheck = (
-  publicRoutes: string[] = ['/home', '/', '/login', '/register', '/forgot-password', '/waitlist'],
-  exemptRoutes: string[] = ['/waitlist', '/auth/callback', '/login', '/register', '/forgot-password'],
+  publicRoutes: string[] = ['/home', '/', '/login', '/register', '/forgot-password', '/waitlist', '/demo-stock'],
+  exemptRoutes: string[] = ['/waitlist', '/auth/callback', '/login', '/register', '/forgot-password', '/demo-stock'],
   redirectPath: string = '/waitlist'
 ): WaitlistStatus => {
-  const [isWaitlisted, setIsWaitlisted] = useState<boolean>(true);
+  const [isWaitlisted, setIsWaitlisted] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -83,25 +83,33 @@ export const useWaitlistCheck = (
           .single();
 
         if (profileError) {
-          throw profileError;
+          console.error('Profile fetch error:', profileError);
+          // Don't throw error, assume not waitlisted if we can't fetch profile
+          setIsWaitlisted(false);
+          setIsLoading(false);
+          return;
         }
 
-        // Set waitlist status (default to true if not set)
-        const waitlisted = profile?.is_waitlisted !== false;
+        // Important fix: Only set waitlisted to true if is_waitlisted is explicitly true
+        const waitlisted = profile?.is_waitlisted === true;
         setIsWaitlisted(waitlisted);
+
+        console.log('Waitlist status:', waitlisted);
 
         // Check if current path is exempt from redirect
         const isExemptRoute = exemptRoutes.some(route => 
           currentPath === route || currentPath.startsWith(route + '/')
         );
 
-        // Redirect if on waitlist and not on an exempt route
+        // Only redirect if explicitly waitlisted AND not on an exempt route
         if (waitlisted && !isExemptRoute) {
           navigate(redirectPath);
         }
       } catch (err) {
         console.error('Error checking waitlist status:', err);
         setError(err instanceof Error ? err.message : 'Failed to check waitlist status');
+        // Assume not waitlisted on error to prevent wrongful redirects
+        setIsWaitlisted(false);
       } finally {
         setIsLoading(false);
       }
@@ -128,12 +136,12 @@ export const checkUserWaitlistStatus = async (userId: string): Promise<boolean> 
     
     if (error) throw error;
     
-    // If is_waitlisted is explicitly false, return false, otherwise return true
-    return data?.is_waitlisted !== false;
+    // Only return true if is_waitlisted is explicitly true
+    return data?.is_waitlisted === true;
   } catch (error) {
     console.error('Error checking user waitlist status:', error);
-    // Default to true (restricted) if there's an error
-    return true;
+    // Default to false (not restricted) if there's an error
+    return false;
   }
 };
 
@@ -147,11 +155,11 @@ export const getCurrentUserWaitlistStatus = async (): Promise<boolean> => {
     
     if (error) throw error;
     
-    // If explicitly false, return false, otherwise true
-    return data !== false;
+    // Only return true if explicitly true
+    return data === true;
   } catch (error) {
     console.error('Error getting waitlist status:', error);
-    // Default to true (restricted) if there's an error
-    return true;
+    // Default to false (not restricted) if there's an error
+    return false;
   }
 }; 

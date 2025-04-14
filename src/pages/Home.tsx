@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { TrendingUp, Award, Shield, Zap, ChevronRight, ArrowRight } from 'lucide-react';
 import { useSubscription } from '../context/SubscriptionContext';
+import { useAuth } from '../context/AuthContext';
 import { supabase } from '../services/supabaseClient';
 
 // Fallback plans in case the subscription context isn't available
@@ -27,6 +28,9 @@ const fallbackPlans = [
 ];
 
 const Home: React.FC = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
   // Try to get subscription plans from context, fall back to local data if error
   let subscriptionPlans = fallbackPlans;
   try {
@@ -138,6 +142,21 @@ const Home: React.FC = () => {
                 <p className="font-medium text-lg">You've joined our waitlist!</p>
                 <p>We'll notify you when you get access.</p>
               </div>
+            ) : user ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="px-8 py-4 text-base font-medium rounded-lg text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-lg transform transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl w-full sm:w-auto flex items-center justify-center"
+                >
+                  Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+                <Link
+                  to="/demo-stock"
+                  className="px-8 py-4 text-base font-medium rounded-lg text-blue-600 bg-white hover:bg-gray-50 shadow-lg transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl flex items-center justify-center w-full sm:w-auto"
+                >
+                  Try Demo <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </>
             ) : (
               <>
                 <button
@@ -237,27 +256,46 @@ const Home: React.FC = () => {
                     <span className="ml-2 text-base font-medium text-gray-500">/month</span>
                   </p>
                   <div className="mt-8 space-y-4">
-                    <button
-                      onClick={() => {
-                        setPreferredPlan(plan.id.toString());
-                        setShowWaitlistForm(true);
-                      }}
-                      className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-lg shadow-md font-semibold text-center transition-all duration-200 flex items-center justify-center"
-                    >
-                      Join Waitlist <ChevronRight className="ml-1 h-4 w-4" />
-                    </button>
-                    <Link
-                      to="/demo-stock"
-                      className="w-full py-3 px-4 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg shadow-sm font-semibold text-center transition-all duration-200 flex items-center justify-center"
-                    >
-                      Try Demo
-                    </Link>
-                    <Link
-                      to="/login"
-                      className="w-full py-3 px-4 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 border border-indigo-200 rounded-lg shadow-sm font-semibold text-center transition-all duration-200 flex items-center justify-center"
-                    >
-                      Already have access? Login
-                    </Link>
+                    {user ? (
+                      <>
+                        <Link
+                          to="/dashboard"
+                          className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-lg shadow-md font-semibold text-center transition-all duration-200 flex items-center justify-center"
+                        >
+                          View Dashboard <ChevronRight className="ml-1 h-4 w-4" />
+                        </Link>
+                        <Link
+                          to="/demo-stock"
+                          className="w-full py-3 px-4 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg shadow-sm font-semibold text-center transition-all duration-200 flex items-center justify-center"
+                        >
+                          Try Demo
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => {
+                            setPreferredPlan(plan.id.toString());
+                            setShowWaitlistForm(true);
+                          }}
+                          className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-lg shadow-md font-semibold text-center transition-all duration-200 flex items-center justify-center"
+                        >
+                          Join Waitlist <ChevronRight className="ml-1 h-4 w-4" />
+                        </button>
+                        <Link
+                          to="/demo-stock"
+                          className="w-full py-3 px-4 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg shadow-sm font-semibold text-center transition-all duration-200 flex items-center justify-center"
+                        >
+                          Try Demo
+                        </Link>
+                        <Link
+                          to="/login"
+                          className="w-full py-3 px-4 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 border border-indigo-200 rounded-lg shadow-sm font-semibold text-center transition-all duration-200 flex items-center justify-center"
+                        >
+                          Already have access? Login
+                        </Link>
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="px-8 pt-6 pb-8 bg-gray-50">
@@ -287,22 +325,35 @@ const Home: React.FC = () => {
             <span className="block mt-2 text-blue-200">Start using Finpulses today.</span>
           </h2>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 lg:mt-0 lg:flex-shrink-0">
-            <div className="inline-flex rounded-md shadow">
-              <button
-                onClick={() => setShowWaitlistForm(true)}
-                className="inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 transition-all duration-200 transform hover:translate-y-[-2px]"
-              >
-                Join Waitlist <ArrowRight className="ml-2 h-4 w-4" />
-              </button>
-            </div>
-            <div className="inline-flex rounded-md shadow">
-              <Link
-                to="/login"
-                className="inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-all duration-200 transform hover:translate-y-[-2px]"
-              >
-                Login <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </div>
+            {user ? (
+              <div className="inline-flex rounded-md shadow">
+                <Link
+                  to="/dashboard"
+                  className="inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 transition-all duration-200 transform hover:translate-y-[-2px]"
+                >
+                  Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </div>
+            ) : (
+              <>
+                <div className="inline-flex rounded-md shadow">
+                  <button
+                    onClick={() => setShowWaitlistForm(true)}
+                    className="inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 transition-all duration-200 transform hover:translate-y-[-2px]"
+                  >
+                    Join Waitlist <ArrowRight className="ml-2 h-4 w-4" />
+                  </button>
+                </div>
+                <div className="inline-flex rounded-md shadow">
+                  <Link
+                    to="/login"
+                    className="inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-all duration-200 transform hover:translate-y-[-2px]"
+                  >
+                    Login <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
