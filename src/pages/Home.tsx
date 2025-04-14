@@ -132,7 +132,7 @@ const Home: React.FC = () => {
           <p className="mt-6 text-xl text-gray-200 max-w-3xl leading-relaxed drop-shadow">
             Finpulses.tech uses advanced machine learning algorithms to analyze market trends and provide accurate stock predictions to help you make better investment decisions.
           </p>
-          <div className="mt-10 flex flex-col sm:flex-row gap-5 w-full max-w-md">
+          <div className="mt-10 flex flex-col sm:flex-row gap-5 w-full max-w-md mx-auto">
             {submitSuccess ? (
               <div className="bg-green-100 text-green-800 p-6 rounded-lg shadow-xl animate-fade-in">
                 <p className="font-medium text-lg">You've joined our waitlist!</p>
@@ -142,21 +142,21 @@ const Home: React.FC = () => {
               <>
                 <button
                   onClick={() => setShowWaitlistForm(true)}
-                  className="px-8 py-4 text-base font-medium rounded-lg text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-lg transform transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl"
+                  className="px-8 py-4 text-base font-medium rounded-lg text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-lg transform transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl w-full sm:w-auto"
                 >
                   Join Waitlist
                 </button>
                 <Link
                   to="/demo-stock"
-                  className="px-8 py-4 text-base font-medium rounded-lg text-blue-600 bg-white hover:bg-gray-50 shadow-lg transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl flex items-center justify-center"
+                  className="px-8 py-4 text-base font-medium rounded-lg text-blue-600 bg-white hover:bg-gray-50 shadow-lg transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl flex items-center justify-center w-full sm:w-auto"
                 >
                   Try Demo <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
                 <Link
                   to="/login"
-                  className="px-8 py-4 text-base font-medium rounded-lg text-white bg-gradient-to-r from-gray-600 to-gray-800 hover:from-gray-700 hover:to-gray-900 shadow-lg transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl"
+                  className="px-8 py-4 text-base font-medium rounded-lg text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 shadow-lg transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl flex items-center justify-center w-full sm:w-auto"
                 >
-                  Login
+                  Login <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </>
             )}
@@ -252,6 +252,12 @@ const Home: React.FC = () => {
                     >
                       Try Demo
                     </Link>
+                    <Link
+                      to="/login"
+                      className="w-full py-3 px-4 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 border border-indigo-200 rounded-lg shadow-sm font-semibold text-center transition-all duration-200 flex items-center justify-center"
+                    >
+                      Already have access? Login
+                    </Link>
                   </div>
                 </div>
                 <div className="px-8 pt-6 pb-8 bg-gray-50">
@@ -280,7 +286,7 @@ const Home: React.FC = () => {
             <span className="block">Ready to boost your investments?</span>
             <span className="block mt-2 text-blue-200">Start using Finpulses today.</span>
           </h2>
-          <div className="mt-8 flex lg:mt-0 lg:flex-shrink-0">
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 lg:mt-0 lg:flex-shrink-0">
             <div className="inline-flex rounded-md shadow">
               <button
                 onClick={() => setShowWaitlistForm(true)}
@@ -288,6 +294,14 @@ const Home: React.FC = () => {
               >
                 Join Waitlist <ArrowRight className="ml-2 h-4 w-4" />
               </button>
+            </div>
+            <div className="inline-flex rounded-md shadow">
+              <Link
+                to="/login"
+                className="inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-all duration-200 transform hover:translate-y-[-2px]"
+              >
+                Login <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </div>
           </div>
         </div>

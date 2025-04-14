@@ -111,12 +111,56 @@ const Navbar: React.FC = () => {
             >
               Try Demo
             </Link>
+            {!user && (
+              <Link
+                to="/login"
+                className="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Login
+              </Link>
+            )}
             <button
               onClick={() => window.location.href = '/waitlist'}
               className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium"
             >
               Join Waitlist
             </button>
+            {user && (
+              <div className="relative" ref={profileMenuRef}>
+                <button
+                  onClick={toggleProfileMenu}
+                  className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 focus:outline-none"
+                >
+                  <UserCircle className="h-6 w-6" />
+                  <span className="hidden md:block">{userData?.username || user.email}</span>
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+                {showProfileMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                    <Link
+                      to="/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setShowProfileMenu(false)}
+                    >
+                      Profile
+                    </Link>
+                    <Link
+                      to="/settings"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setShowProfileMenu(false)}
+                    >
+                      Settings
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
