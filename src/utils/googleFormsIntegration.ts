@@ -18,7 +18,7 @@ interface WaitlistFormData {
  */
 export const submitToGoogleForm = async (
   formData: WaitlistFormData,
-  googleFormId: string = 'your-google-form-id'
+  googleFormId: string = '1oKnGauCn2esBjwOqktL1bODFLy6H8kfSiUiHEh8zeTfSB66YlxZs5oUn'
 ): Promise<boolean> => {
   try {
     // Get the pre-filled form URL with our data
