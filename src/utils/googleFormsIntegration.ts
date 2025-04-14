@@ -28,10 +28,10 @@ export const submitToGoogleForm = async (
     // Map our form fields to Google Forms entry IDs
     // You need to replace these with your actual form field entry IDs
     const formEntryIds = {
-      email: 'entry.123456789',
-      name: 'entry.234567890',
-      preferredPlan: 'entry.345678901',
-      additionalInfo: 'entry.456789012'
+      email: 'entry.957637257',
+      name: 'entry.603841953',
+      preferredPlan: 'entry.469695349',
+      additionalInfo: 'entry.1163445299'
     };
     
     // Add parameters to URL

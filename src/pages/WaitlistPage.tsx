@@ -16,8 +16,8 @@ const WaitlistPage: React.FC = () => {
   const plans = [
     {
       id: 'basic',
-      name: 'Basic Plan',
-      price: 9.99,
+      name: 'Free Plan',
+      price: 'Free',
       features: [
         'AI-powered stock predictions',
         'Basic technical indicators',
@@ -26,11 +26,11 @@ const WaitlistPage: React.FC = () => {
       ]
     },
     {
-      id: 'pro',
-      name: 'Pro Plan',
-      price: 19.99,
+      id: 'Plus',
+      name: 'Plus Plan',
+      price: 9.99,
       features: [
-        'Everything in Basic',
+        'Everything in Free',
         'Advanced technical indicators',
         'Real-time market data',
         'Portfolio tracking',
@@ -38,11 +38,11 @@ const WaitlistPage: React.FC = () => {
       ]
     },
     {
-      id: 'enterprise',
-      name: 'Enterprise Plan',
+      id: 'pro',
+      name: 'Pro Plan',
       price: 29.99,
       features: [
-        'Everything in Pro',
+        'Everything in Plus',
         'Custom AI models',
         'Unlimited API calls',
         'Dedicated account manager',
