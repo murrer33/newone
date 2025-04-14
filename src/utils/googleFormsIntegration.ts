@@ -18,7 +18,7 @@ interface WaitlistFormData {
  */
 export const submitToGoogleForm = async (
   formData: WaitlistFormData,
-  googleFormId: string = '12vQ17UPxYvvFoCBZ4a8ynyOxzSbePMlYuZ28SG_2V4k'
+  googleFormId: string = '1FAIpQLSeM2Nd8SyjZh_P1CM-TXcmbeDVcuYdz-GzkERKPB7MXOl8v3g'
 ): Promise<boolean> => {
   try {
     // Get the pre-filled form URL with our data
@@ -80,7 +80,7 @@ export const submitToGoogleForm = async (
  */
 export const getGoogleFormIframeUrl = (
   formData: WaitlistFormData,
-  googleFormId: string = '12vQ17UPxYvvFoCBZ4a8ynyOxzSbePMlYuZ28SG_2V4k'
+  googleFormId: string = '1FAIpQLSeM2Nd8SyjZh_P1CM-TXcmbeDVcuYdz-GzkERKPB7MXOl8v3g'
 ): string => {
   // Get the pre-filled form URL with our data
   const formUrl = new URL(`https://docs.google.com/forms/d/e/${googleFormId}/viewform`);
