@@ -80,7 +80,7 @@ export const submitToGoogleForm = async (
  */
 export const getGoogleFormIframeUrl = (
   formData: WaitlistFormData,
-  googleFormId: string = '1GLpJtOJ38PQvaa2BBU2rK3UyytNeTnTw9QiQ2YyRzr8'
+  googleFormId: string = '12vQ17UPxYvvFoCBZ4a8ynyOxzSbePMlYuZ28SG_2V4k'
 ): string => {
   // Get the pre-filled form URL with our data
   const formUrl = new URL(`https://docs.google.com/forms/d/e/${googleFormId}/viewform`);
@@ -88,10 +88,10 @@ export const getGoogleFormIframeUrl = (
   // Map our form fields to Google Forms entry IDs
   // You need to replace these with your actual form field entry IDs
   const formEntryIds = {
-    email: 'entry.123456789',
-    name: 'entry.234567890',
-    preferredPlan: 'entry.345678901',
-    additionalInfo: 'entry.456789012'
+    email: 'entry.957637257',
+      name: 'entry.603841953',
+      preferredPlan: 'entry.469695349',
+      additionalInfo: 'entry.1163445299'
   };
   
   // Add parameters to URL
