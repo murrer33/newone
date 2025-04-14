@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, LineChart, BarChart3, TrendingUp, BarChart, Zap, Shield } from 'lucide-react';
+import { ArrowRight, LineChart, BarChart3, TrendingUp, BarChart, Zap, Shield, X, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { submitToGoogleForm } from '../utils/googleFormsIntegration';
+import { supabase } from '../services/supabaseClient';
 
 // Import logo if available in assets
 import logo from '../assets/logo.svg';
@@ -9,6 +11,82 @@ import logo from '../assets/logo.svg';
 const Home: React.FC = () => {
   const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Form state
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [preferredPlan, setPreferredPlan] = useState('basic');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email) {
+      setError('Email is required');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      // Try to add to waitlist table
+      const { error: insertError } = await supabase
+        .from('waitlist')
+        .insert([
+          { 
+            email, 
+            name,
+            preferred_plan: preferredPlan,
+            joined_at: new Date().toISOString(),
+            referral_code: Math.random().toString(36).substring(2, 10).toUpperCase()
+          }
+        ]);
+      
+      // Also submit the data to Google Forms
+      const googleFormSubmitted = await submitToGoogleForm({
+        email,
+        name,
+        preferredPlan,
+        additionalInfo: `Submitted from Home page on ${new Date().toISOString()}`
+      });
+      
+      if (insertError) {
+        console.error('Error joining waitlist:', insertError);
+        
+        if (googleFormSubmitted) {
+          // If Supabase fails but Google Forms works, still count it as a success
+          setSubmitSuccess(true);
+          setEmail('');
+          setName('');
+          setPreferredPlan('basic');
+        } else {
+          setError('Failed to join waitlist. Please try again later or contact support.');
+        }
+      } else {
+        setSubmitSuccess(true);
+        // Reset form
+        setEmail('');
+        setName('');
+        setPreferredPlan('basic');
+      }
+    } catch (err) {
+      console.error('Error submitting to waitlist:', err);
+      setError('An unexpected error occurred. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Close modal and reset
+  const closeModal = () => {
+    setIsModalOpen(false);
+    if (submitSuccess) {
+      setSubmitSuccess(false);
+    }
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -302,55 +380,148 @@ const Home: React.FC = () => {
         </div>
       </footer>
 
-      {/* Waitlist Modal */}
+      {/* Waitlist Form Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70 backdrop-blur-sm">
-          <div className="relative w-full max-w-md p-8 bg-white rounded-2xl shadow-xl">
-            <button 
-              onClick={() => setIsModalOpen(false)}
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900 bg-opacity-50 flex items-center justify-center p-4">
+          <div className="relative bg-white rounded-lg max-w-md w-full mx-auto shadow-xl">
+            <button
+              onClick={closeModal}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="h-5 w-5" />
             </button>
-            <h2 className="text-2xl font-bold text-gray-900">Join the Waitlist</h2>
-            <p className="mt-2 text-gray-600">
-              Be the first to access our AI-powered stock prediction platform when it launches.
-            </p>
-            <form className="mt-6">
-              <div className="mb-4">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Email address
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  className="block w-full px-4 py-3 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="you@example.com"
-                  required
-                />
+
+            {submitSuccess ? (
+              <div className="p-6">
+                <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-full bg-green-100">
+                  <Check className="w-8 h-8 text-green-600" />
+                </div>
+                <h2 className="mt-6 text-2xl font-bold text-center text-gray-900">
+                  You're on the waitlist!
+                </h2>
+                <p className="mt-4 text-center text-gray-600">
+                  Thank you for joining our waitlist! We're excited to share FinPulses with you when it's ready.
+                  We'll notify you at your email address when you've been granted access.
+                </p>
+                <button
+                  onClick={closeModal}
+                  className="mt-6 w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Close
+                </button>
               </div>
-              <div className="mb-4">
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                  Name (optional)
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  className="block w-full px-4 py-3 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Your name"
-                />
+            ) : (
+              <div className="p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Join the Waitlist</h2>
+                <p className="text-gray-600 mb-6">
+                  Sign up now to get early access to our AI-powered stock analysis platform and receive exclusive benefits.
+                </p>
+
+                {error && (
+                  <div className="mb-4 p-2 bg-red-50 text-red-600 rounded-md text-sm">
+                    {error}
+                  </div>
+                )}
+
+                <form className="space-y-4" onSubmit={handleSubmit}>
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                      Email address <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      placeholder="you@example.com"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                      Name (optional)
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      placeholder="John Doe"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Preferred plan
+                    </label>
+                    <div className="mt-2 space-y-2">
+                      <div className="flex items-center">
+                        <input
+                          id="basic"
+                          name="plan"
+                          type="radio"
+                          checked={preferredPlan === 'basic'}
+                          onChange={() => setPreferredPlan('basic')}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                        />
+                        <label htmlFor="basic" className="ml-2 block text-sm text-gray-700">
+                          Basic Plan - $9.99/mo
+                        </label>
+                      </div>
+                      <div className="flex items-center">
+                        <input
+                          id="pro"
+                          name="plan"
+                          type="radio"
+                          checked={preferredPlan === 'pro'}
+                          onChange={() => setPreferredPlan('pro')}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                        />
+                        <label htmlFor="pro" className="ml-2 block text-sm text-gray-700">
+                          Pro Plan - $19.99/mo
+                        </label>
+                      </div>
+                      <div className="flex items-center">
+                        <input
+                          id="enterprise"
+                          name="plan"
+                          type="radio"
+                          checked={preferredPlan === 'enterprise'}
+                          onChange={() => setPreferredPlan('enterprise')}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                        />
+                        <label htmlFor="enterprise" className="ml-2 block text-sm text-gray-700">
+                          Enterprise Plan - $29.99/mo
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing...
+                      </>
+                    ) : (
+                      'Join Waitlist'
+                    )}
+                  </button>
+                </form>
               </div>
-              <button
-                type="submit"
-                className="w-full px-6 py-3 mt-4 text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-md shadow-sm hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                Join Waitlist
-              </button>
-            </form>
+            )}
           </div>
         </div>
       )}

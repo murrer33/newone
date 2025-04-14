@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Check, ChevronRight } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
+import { submitToGoogleForm } from '../utils/googleFormsIntegration';
 import logo from '../assets/logo.svg';
 
 const WaitlistPage: React.FC = () => {
@@ -76,23 +77,40 @@ const WaitlistPage: React.FC = () => {
           }
         ]);
       
+      // Also submit the data to Google Forms
+      const googleFormSubmitted = await submitToGoogleForm({
+        email,
+        name,
+        preferredPlan,
+        additionalInfo: `Submitted on ${new Date().toISOString()}`
+      });
+      
       if (insertError) {
         console.error('Error joining waitlist:', insertError);
-        setError('Failed to join waitlist. Please try again later or contact support.');
         
-        // Save to local storage as a fallback
-        try {
-          const waitlistEntries = JSON.parse(localStorage.getItem('waitlistEntries') || '[]');
-          waitlistEntries.push({
-            email,
-            name,
-            preferredPlan,
-            joinedAt: new Date().toISOString(),
-            referralCode: Math.random().toString(36).substring(2, 10).toUpperCase()
-          });
-          localStorage.setItem('waitlistEntries', JSON.stringify(waitlistEntries));
-        } catch (storageError) {
-          console.error('Failed to save to local storage:', storageError);
+        if (googleFormSubmitted) {
+          // If Supabase fails but Google Forms works, still count it as a success
+          setSubmitSuccess(true);
+          setEmail('');
+          setName('');
+          setPreferredPlan('basic');
+        } else {
+          setError('Failed to join waitlist. Please try again later or contact support.');
+          
+          // Save to local storage as a fallback
+          try {
+            const waitlistEntries = JSON.parse(localStorage.getItem('waitlistEntries') || '[]');
+            waitlistEntries.push({
+              email,
+              name,
+              preferredPlan,
+              joinedAt: new Date().toISOString(),
+              referralCode: Math.random().toString(36).substring(2, 10).toUpperCase()
+            });
+            localStorage.setItem('waitlistEntries', JSON.stringify(waitlistEntries));
+          } catch (storageError) {
+            console.error('Failed to save to local storage:', storageError);
+          }
         }
       } else {
         setSubmitSuccess(true);
