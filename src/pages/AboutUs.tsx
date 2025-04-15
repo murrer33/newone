@@ -53,40 +53,26 @@ const teamMembers = [
 
 const milestones = [
   {
-    year: '2018',
+    year: '2024',
     title: 'Research Begins',
     description: 'Our founders begin researching AI applications in financial markets.'
   },
   {
-    year: '2019',
+    year: '2025',
     title: 'Company Founded',
     description: 'FinPulses is officially founded with seed funding from tech investors.'
   },
   {
-    year: '2020',
+    year: 'SOON',
     title: 'Beta Launch',
     description: 'First version of our platform launches to beta testers with promising results.'
   },
-  {
-    year: '2021',
-    title: 'Series A Funding',
-    description: 'Secured $5M in Series A funding to expand our team and improve our models.'
-  },
-  {
-    year: '2022',
-    title: 'Platform Growth',
-    description: 'Reached 10,000 active users and expanded coverage to international markets.'
-  },
-  {
-    year: '2023',
-    title: 'AI Model v2.0',
-    description: 'Launched our second-generation prediction algorithms with higher accuracy.'
-  }
+  
 ];
 
 const stats = [
-  { icon: <Users className="h-6 w-6 text-blue-400" />, value: '50,000+', label: 'Active Users' },
-  { icon: <Globe className="h-6 w-6 text-blue-400" />, value: '30+', label: 'Markets Covered' },
+  { icon: <Users className="h-6 w-6 text-blue-400" />, value: '1,000+', label: 'Active Users' },
+  { icon: <Globe className="h-6 w-6 text-blue-400" />, value: '30+', label: 'Stocks Covered' },
   { icon: <Award className="h-6 w-6 text-blue-400" />, value: '90%', label: 'Prediction Accuracy' },
   { icon: <Clock className="h-6 w-6 text-blue-400" />, value: '24/7', label: 'Market Monitoring' }
 ];
@@ -122,7 +108,7 @@ const AboutUs: React.FC = () => {
               About Finpulses.tech
             </h1>
             <p className="mt-6 max-w-2xl mx-auto text-xl text-blue-100">
-              Empowering investors with AI-driven market insights and analysis since 2019
+              Empowering investors with AI-driven market insights and analysis since 2024
             </p>
           </div>
         </div>
