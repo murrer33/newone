@@ -109,14 +109,7 @@ const Navbar: React.FC = () => {
 
   const authenticatedLinks = [
     { name: 'Home', path: '/' },
-    { name: 'Market Overview', path: '/market' },
-    { name: 'Popular Stocks', path: '/popular-stocks' },
-    { name: 'Trending Stocks', path: '/trending-stocks' },
-    { name: 'Compare Stocks', path: '/compare-stocks' },
-    { name: 'Watchlist', path: '/watchlist' },
-    { name: 'Screener', path: '/screener' },
-    { name: 'Economic News', path: '/economic-news' },
-  ];
+      ];
 
   const navLinks = user ? authenticatedLinks : publicLinks;
 
