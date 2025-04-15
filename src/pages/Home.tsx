@@ -107,23 +107,23 @@ const Home: React.FC = () => {
             </div>
             <div className="flex space-x-2 md:space-x-4">
               <Link 
-                to="/pricing" 
+                to="/blog" 
                 className="px-3 py-2 text-sm font-medium text-white rounded-md hover:bg-white/10 transition-colors"
               >
-                Pricing
+                Blog
               </Link>
               <Link 
-                to="/faq" 
+                to="/about" 
                 className="px-3 py-2 text-sm font-medium text-white rounded-md hover:bg-white/10 transition-colors"
               >
-                FAQ
+                About Us
               </Link>
               {user ? (
                 <Link 
-                  to="/dashboard" 
+                  to="/profile" 
                   className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
                 >
-                  Dashboard
+                  Profile
                 </Link>
               ) : (
                 <Link 
@@ -156,12 +156,12 @@ const Home: React.FC = () => {
             >
               Try Demo <ArrowRight className="ml-2 w-5 h-5" />
             </Link>
-            <button
-              onClick={() => setIsModalOpen(true)}
+            <Link
+              to="/waitlist"
               className="flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all"
             >
               Join Waitlist <ArrowRight className="ml-2 w-5 h-5" />
-            </button>
+            </Link>
           </div>
 
           {/* Stats */}
@@ -327,12 +327,12 @@ const Home: React.FC = () => {
                 >
                   Try Demo <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
-                <button
-                  onClick={() => setIsModalOpen(true)}
+                <Link
+                  to="/waitlist"
                   className="flex items-center justify-center w-full px-8 py-3 text-base font-medium text-white bg-blue-800 rounded-md shadow-sm hover:bg-blue-900 sm:w-auto"
                 >
                   Join Waitlist <ArrowRight className="ml-2 w-5 h-5" />
-                </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -349,28 +349,22 @@ const Home: React.FC = () => {
             </div>
             <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 mt-8 md:mt-0">
               <Link 
-                to="/pricing" 
+                to="/blog" 
                 className="text-sm text-gray-400 hover:text-white"
               >
-                Pricing
+                Blog
               </Link>
               <Link 
-                to="/faq" 
+                to="/about" 
                 className="text-sm text-gray-400 hover:text-white"
               >
-                FAQ
+                About Us
               </Link>
               <Link 
-                to="/terms" 
+                to="/demo-stock" 
                 className="text-sm text-gray-400 hover:text-white"
               >
-                Terms of Service
-              </Link>
-              <Link 
-                to="/privacy" 
-                className="text-sm text-gray-400 hover:text-white"
-              >
-                Privacy Policy
+                Demo
               </Link>
             </div>
           </div>

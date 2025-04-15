@@ -22,6 +22,8 @@ import WaitlistPage from './pages/WaitlistPage';
 import PaymentSuccess from "./pages/PaymentSuccess";
 import DemoStock from "./pages/DemoStock";
 import Navbar from './components/Navbar';
+import Blog from "./pages/Blog";
+import AboutUs from "./pages/AboutUs";
 
 const WaitlistWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Use the waitlist check hook to handle redirects
@@ -58,6 +60,8 @@ function App() {
                     <Route path="/home" element={<Home />} />
                     <Route path="/waitlist" element={<WaitlistPage />} />
                     <Route path="/demo-stock" element={<DemoStock />} />
+                    <Route path="/blog" element={<Blog />} />
+                    <Route path="/about" element={<AboutUs />} />
 
                     {/* Auth Routes */}
                     <Route path="/login" element={<Login />} />

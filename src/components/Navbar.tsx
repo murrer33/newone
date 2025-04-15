@@ -103,14 +103,12 @@ const Navbar: React.FC = () => {
 
   const publicLinks = [
     { name: 'Home', path: '/' },
-    { name: 'Pricing', path: '/pricing' },
-    { name: 'FAQ', path: '/faq' },
-    { name: 'About Us', path: '/about' },
-    { name: 'Contact Us', path: '/contact' }
+    { name: 'Blog', path: '/blog' },
+    { name: 'About Us', path: '/about' }
   ];
 
   const authenticatedLinks = [
-    { name: 'Dashboard', path: '/' },
+    { name: 'Home', path: '/' },
     { name: 'Market Overview', path: '/market' },
     { name: 'Popular Stocks', path: '/popular-stocks' },
     { name: 'Trending Stocks', path: '/trending-stocks' },
@@ -128,11 +126,22 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between h-16">
           <div className="flex">
             <Link 
-              to={user ? "/dashboard" : "/"} 
+              to="/" 
               className="flex-shrink-0 flex items-center"
             >
               <Logo />
             </Link>
+          </div>
+          <div className="hidden md:flex items-center space-x-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                {link.name}
+              </Link>
+            ))}
           </div>
           <div className="flex items-center space-x-4">
             <Link
@@ -149,12 +158,12 @@ const Navbar: React.FC = () => {
                 Login
               </Link>
             )}
-            <button
-              onClick={() => window.location.href = '/waitlist'}
+            <Link
+              to="/waitlist"
               className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium"
             >
               Join Waitlist
-            </button>
+            </Link>
             {user && (
               <div className="relative" ref={profileMenuRef}>
                 <button
