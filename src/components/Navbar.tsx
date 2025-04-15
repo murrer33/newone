@@ -26,7 +26,38 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useToken } from '../context/TokenContext';
-import logo from '../assets/logo.svg';
+// import logo from '../assets/logo.svg';
+
+// SVG logo with circuit board design and stock chart
+const Logo = () => (
+  <svg width="120" height="40" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
+    {/* Circuit board pattern */}
+    <rect x="0" y="0" width="40" height="40" fill="#0f172a" rx="5" />
+    <circle cx="10" cy="10" r="2" fill="#38bdf8" />
+    <circle cx="30" cy="10" r="2" fill="#38bdf8" />
+    <circle cx="10" cy="30" r="2" fill="#38bdf8" />
+    <circle cx="30" cy="30" r="2" fill="#38bdf8" />
+    <line x1="10" y1="10" x2="30" y2="10" stroke="#38bdf8" strokeWidth="1" />
+    <line x1="10" y1="30" x2="30" y2="30" stroke="#38bdf8" strokeWidth="1" />
+    <line x1="10" y1="10" x2="10" y2="30" stroke="#38bdf8" strokeWidth="1" />
+    <line x1="30" y1="10" x2="30" y2="30" stroke="#38bdf8" strokeWidth="1" />
+    <line x1="20" y1="5" x2="20" y2="35" stroke="#38bdf8" strokeWidth="1" />
+    <line x1="5" y1="20" x2="35" y2="20" stroke="#38bdf8" strokeWidth="1" />
+    
+    {/* Stock chart line */}
+    <polyline 
+      points="5,25 15,15 20,28 25,10 35,18" 
+      fill="none" 
+      stroke="#06b6d4" 
+      strokeWidth="2"
+    />
+    
+    {/* Logo text */}
+    <text x="45" y="25" fontFamily="Arial" fontSize="16" fontWeight="bold" fill="#0f172a">
+      FinPulses.tech
+    </text>
+  </svg>
+);
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -100,11 +131,7 @@ const Navbar: React.FC = () => {
               to={user ? "/dashboard" : "/"} 
               className="flex-shrink-0 flex items-center"
             >
-              <img
-                className="h-10 w-auto"
-                src={logo}
-                alt="FinPulses.tech"
-              />
+              <Logo />
             </Link>
           </div>
           <div className="flex items-center space-x-4">

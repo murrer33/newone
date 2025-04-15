@@ -4,13 +4,55 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/jpg" href="/favicon.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FinPulses.Tech -StockAnalyzer-Technical Analysis & Predictions</title>
-    <meta name="description" content="Analyze stocks with technical indicators and AI-powered price predictions">
+    <title>FinPulses.Tech - Stock Analysis & AI Predictions</title>
+    <meta name="description" content="AI-powered stock analysis platform with technical indicators, price predictions, and market sentiment analysis.">
+    <meta name="keywords" content="stock analysis, AI predictions, technical indicators, stock market, financial analysis, trading, investment">
+    <meta name="author" content="FinPulses Technology">
+    <meta name="theme-color" content="#1d4ed8">
+    
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://finpulses.tech">
+    <meta property="og:title" content="FinPulses.Tech - AI-Powered Stock Analysis">
+    <meta property="og:description" content="Make smarter investment decisions with AI-powered stock analysis and predictions.">
+    <meta property="og:image" content="/og-image.jpg">
+    
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="FinPulses.Tech - AI-Powered Stock Analysis">
+    <meta name="twitter:description" content="Make smarter investment decisions with AI-powered stock analysis and predictions.">
+    <meta name="twitter:image" content="/twitter-image.jpg">
+    
+    <!-- Preconnect to important domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Structured data for SEO -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "FinPulses",
+        "description": "AI-powered stock analysis and prediction platform",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Web",
+        "offers": {
+          "@type": "AggregateOffer",
+          "lowPrice": "9.99",
+          "highPrice": "29.99",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
+    
     <!-- Debug script to check environment variables -->
     <script type="module" src="/src/scripts/check-env-vars.js"></script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- Accessibility helper -->
+    <div id="a11y-announcer" aria-live="polite" class="sr-only"></div>
   </body>
 </html>
