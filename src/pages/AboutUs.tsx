@@ -26,28 +26,16 @@ const features = [
 
 const teamMembers = [
   {
-    name: 'Berke M. Utuş',
+    name: 'Berke U.',
     title: 'Founder & CEO',
     image: 'https://www.save-free.com/cdn/https://scontent-fra5-2.cdninstagram.com/v/t51.2885-19/461992421_901441847995471_2092891303507707244_n.jpg?_nc_ht=scontent-fra5-2.cdninstagram.com&_nc_cat=107&_nc_oc=Q6cZ2QFBdMEmtRtAZ_ZHTz3MAU2NFILQ7RUoJkC_AjG61GW89nLcelg7e2iLa-L1JhlPw5qT1zSJfdV5OOKRI5VJZlX7&_nc_ohc=h1jYVjF0hKsQ7kNvwHqsBlH&_nc_gid=A9scZGg7HdRK4P4fxCxt2g&edm=AEF8tYYBAAAA&ccb=7-5&oh=00_AfHjLeI2IGE9d_XkgApqkSKrCXFbYsyI_g6yuqnoptZVtA&oe=68046546&_nc_sid=1e20d2',
-    bio: 'Simply the greatest.' 
+    bio: 'Found the Finpulses in 2025.' 
   },
   {
-    name: 'Ata Öznaci',
+    name: 'Ata Ö.',
     title: 'Marketing Manager',
     image: 'https://www.save-free.com/cdn/https://scontent-iev1-1.cdninstagram.com/v/t51.2885-19/404000244_317760777731785_8398678948957984784_n.jpg?_nc_ht=scontent-iev1-1.cdninstagram.com&_nc_cat=101&_nc_oc=Q6cZ2QGWjp523PRYrCIsuEbyhfkwpUPSuLf7JVi_mqMMvtW6vvQ85wFSHmCZePLyJjACCAc&_nc_ohc=E9da8Rfk16cQ7kNvwGVReKz&_nc_gid=cgYlrQuoursq_Xx9X-4emw&edm=AEF8tYYBAAAA&ccb=7-5&oh=00_AfFNt3AwsHCx4CQJ8_B0435_dUGwJHefQaG_pdIEng8pqw&oe=68049499&_nc_sid=1e20d2',
-    bio: 'Being busy expert who previously built cockroach photos.'
-  },
-  {
-    name: 'Erdem Kutay Durak',
-    title: 'Head of Vacant Jobs',
-    image: 'https://www.save-free.com/cdn/https://instagram.fsof9-1.fna.fbcdn.net/v/t51.2885-19/448718102_488253770612515_3407447316050370242_n.jpg?_nc_ht=instagram.fsof9-1.fna.fbcdn.net&_nc_cat=107&_nc_oc=Q6cZ2QEqtR-9bSVjDMSWuJEYGRGQ_Epyc_-E6yvQnUbJ5lArkDO6gVW78hr4HP8B_CCTAme5AQSroOyeGe4QB2rR524q&_nc_ohc=6DXDSDPvAN8Q7kNvwFFS1wK&_nc_gid=URpvII8TeOJHzBPPUiDFbg&edm=AEF8tYYBAAAA&ccb=7-5&oh=00_AfH9ualHNIIV_LTCh39rOLHklb12EEY294-zS0sNThB_qg&oe=6804694A&_nc_sid=1e20d2',
-    bio: 'PhD in smoking and drinking coffee in the gazebo.'
-  },
-  {
-    name: 'Metin Murat Petorak',
-    title: 'Head of 9lumasa',
-    image: 'https://www.save-free.com/cdn/https://scontent-waw2-2.cdninstagram.com/v/t51.2885-19/284014702_390881856390413_1171075586793049498_n.jpg?_nc_ht=scontent-waw2-2.cdninstagram.com&_nc_cat=105&_nc_oc=Q6cZ2QGPL78zCWpFX9G5faNgFHT0sdWcHpSckO6d2RRuuah8rwMWQ5YErcDKsoJV3Sl0nvg&_nc_ohc=cyi926n8XM0Q7kNvwGvWTK5&_nc_gid=kJIc056z1mkZ0Pvet4BnjQ&edm=AEF8tYYBAAAA&ccb=7-5&oh=00_AfE614JWk5WqwpvCdmWMBq5sU11wYV9JNfwdSKdv9ijNng&oe=68048BD9&_nc_sid=1e20d2',
-    bio: 'Former smoker.'
+    bio: 'Expert in AI and Marketing.Loves to create AI-Built cockroach photos.'
   }
 ];
 
