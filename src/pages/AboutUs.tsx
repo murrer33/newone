@@ -33,7 +33,7 @@ const teamMembers = [
   },
   {
     name: 'Ata Ö.',
-    title: 'Marketing Manager',
+    title: 'Co-Founder & Marketing Manager',
     image: 'https://www.save-free.com/cdn/https://scontent-iev1-1.cdninstagram.com/v/t51.2885-19/404000244_317760777731785_8398678948957984784_n.jpg?_nc_ht=scontent-iev1-1.cdninstagram.com&_nc_cat=101&_nc_oc=Q6cZ2QGWjp523PRYrCIsuEbyhfkwpUPSuLf7JVi_mqMMvtW6vvQ85wFSHmCZePLyJjACCAc&_nc_ohc=E9da8Rfk16cQ7kNvwGVReKz&_nc_gid=cgYlrQuoursq_Xx9X-4emw&edm=AEF8tYYBAAAA&ccb=7-5&oh=00_AfFNt3AwsHCx4CQJ8_B0435_dUGwJHefQaG_pdIEng8pqw&oe=68049499&_nc_sid=1e20d2',
     bio: 'Expert in AI and Marketing.Loves to create AI-Built cockroach photos.'
   },
