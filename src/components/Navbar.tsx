@@ -102,14 +102,19 @@ const Navbar: React.FC = () => {
   };
 
   const publicLinks = [
-    { name: 'Home', path: '/' },
-    { name: 'Blog', path: '/blog' },
-    { name: 'About Us', path: '/about' }
+    { name: 'Home', path: '/', icon: <Home className="h-5 w-5" /> },
+    { name: 'Blog', path: '/blog', icon: <Newspaper className="h-5 w-5" /> },
+    { name: 'About Us', path: '/about', icon: <Compass className="h-5 w-5" /> }
   ];
 
   const authenticatedLinks = [
-    { name: 'Home', path: '/' },
-      ];
+    { name: 'Dashboard', path: '/dashboard', icon: <BarChart className="h-5 w-5" /> },
+    { name: 'Economic News', path: '/economic-news', icon: <Newspaper className="h-5 w-5" /> },
+    { name: 'Watchlist', path: '/watchlist', icon: <Eye className="h-5 w-5" /> },
+    { name: 'Screener', path: '/screener', icon: <ScanLine className="h-5 w-5" /> },
+    { name: 'Trending Stocks', path: '/market', icon: <TrendingUp className="h-5 w-5" /> },
+    { name: 'Profile', path: '/profile', icon: <User className="h-5 w-5" /> }
+  ];
 
   const navLinks = user ? authenticatedLinks : publicLinks;
 
@@ -130,33 +135,42 @@ const Navbar: React.FC = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium ${
+                  location.pathname === link.path 
+                    ? 'bg-blue-50 text-blue-600' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
               >
-                {link.name}
+                {link.icon && <span>{link.icon}</span>}
+                <span>{link.name}</span>
               </Link>
             ))}
           </div>
           <div className="flex items-center space-x-4">
-            <Link
-              to="/demo-stock"
-              className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-            >
-              Try Demo
-            </Link>
+            {!user && (
+              <>
+                <Link
+                  to="/demo-stock"
+                  className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Try Demo
+                </Link>
+                <Link
+                  to="/login"
+                  className="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Login
+                </Link>
+              </>
+            )}
             {!user && (
               <Link
-                to="/login"
-                className="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium"
+                to="/register"
+                className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium"
               >
-                Login
+                Sign Up
               </Link>
             )}
-            <Link
-              to="/waitlist"
-              className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium"
-            >
-              Join Waitlist
-            </Link>
             {user && (
               <div className="relative" ref={profileMenuRef}>
                 <button
@@ -193,8 +207,37 @@ const Navbar: React.FC = () => {
                 )}
               </div>
             )}
+            <button
+              onClick={toggleMenu}
+              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
+            >
+              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile menu */}
+        {isMenuOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium ${
+                    location.pathname === link.path 
+                      ? 'bg-blue-50 text-blue-600' 
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {link.icon && <span>{link.icon}</span>}
+                  <span>{link.name}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
