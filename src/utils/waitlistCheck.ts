@@ -75,42 +75,14 @@ export const useWaitlistCheck = (
         // User is authenticated
         setIsAuthenticated(true);
 
-        // Get user profile to check waitlist status
-        const { data: profile, error: profileError } = await supabase
-          .from('users')
-          .select('is_waitlisted')
-          .eq('uid', session.user.id)
-          .single();
-
-        if (profileError) {
-          console.error('Profile fetch error:', profileError);
-          // Don't throw error, assume not waitlisted if we can't fetch profile
-          setIsWaitlisted(false);
-          setIsLoading(false);
-          return;
-        }
-
-        // Important fix: Only set waitlisted to true if is_waitlisted is explicitly true
-        const waitlisted = profile?.is_waitlisted === true;
-        setIsWaitlisted(waitlisted);
-
-        console.log('Waitlist status:', waitlisted);
-
-        // Check if current path is exempt from redirect
-        const isExemptRoute = exemptRoutes.some(route => 
-          currentPath === route || currentPath.startsWith(route + '/')
-        );
-
-        // Only redirect if explicitly waitlisted AND not on an exempt route
-        if (waitlisted && !isExemptRoute) {
-          navigate(redirectPath);
-        }
+        // Waitlist is disabled, always set to false
+        setIsWaitlisted(false);
+        setIsLoading(false);
       } catch (err) {
         console.error('Error checking waitlist status:', err);
         setError(err instanceof Error ? err.message : 'Failed to check waitlist status');
         // Assume not waitlisted on error to prevent wrongful redirects
         setIsWaitlisted(false);
-      } finally {
         setIsLoading(false);
       }
     };
@@ -127,22 +99,8 @@ export const useWaitlistCheck = (
  * @returns Promise with waitlist status
  */
 export const checkUserWaitlistStatus = async (userId: string): Promise<boolean> => {
-  try {
-    const { data, error } = await supabase
-      .from('users')
-      .select('is_waitlisted')
-      .eq('uid', userId)
-      .single();
-    
-    if (error) throw error;
-    
-    // Only return true if is_waitlisted is explicitly true
-    return data?.is_waitlisted === true;
-  } catch (error) {
-    console.error('Error checking user waitlist status:', error);
-    // Default to false (not restricted) if there's an error
-    return false;
-  }
+  // Waitlist is disabled, always return false
+  return false;
 };
 
 /**
@@ -150,16 +108,6 @@ export const checkUserWaitlistStatus = async (userId: string): Promise<boolean> 
  * @returns Promise with waitlist status
  */
 export const getCurrentUserWaitlistStatus = async (): Promise<boolean> => {
-  try {
-    const { data, error } = await supabase.rpc('get_waitlist_status');
-    
-    if (error) throw error;
-    
-    // Only return true if explicitly true
-    return data === true;
-  } catch (error) {
-    console.error('Error getting waitlist status:', error);
-    // Default to false (not restricted) if there's an error
-    return false;
-  }
+  // Waitlist is disabled, always return false
+  return false;
 }; 

@@ -67,7 +67,7 @@ const Login: React.FC = () => {
       setLoading(true);
       const user = await login(email, password);
       if (user) {
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to sign in';

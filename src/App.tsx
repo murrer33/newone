@@ -17,29 +17,11 @@ import EconomicalNews from "./pages/EconomicalNews";
 import UserProfile from "./pages/UserProfile";
 import ForgotPassword from "./pages/ForgotPassword";
 import DatabaseCheck from "./components/DatabaseCheck";
-import { useWaitlistCheck } from './utils/waitlistCheck';
-import WaitlistPage from './pages/WaitlistPage';
 import PaymentSuccess from "./pages/PaymentSuccess";
 import DemoStock from "./pages/DemoStock";
 import Navbar from './components/Navbar';
 import Blog from "./pages/Blog";
 import AboutUs from "./pages/AboutUs";
-
-const WaitlistWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Use the waitlist check hook to handle redirects
-  const { isWaitlisted, isLoading } = useWaitlistCheck();
-  
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-  
-  // Render children directly - redirects are handled by the hook
-  return <>{children}</>;
-};
 
 function App() {
   return (
@@ -58,15 +40,14 @@ function App() {
                     {/* Public Routes - Accessible without authentication */}
                     <Route path="/" element={<Home />} />
                     <Route path="/home" element={<Home />} />
-                    <Route path="/waitlist" element={<WaitlistPage />} />
+                    <Route path="/waitlist" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/demo-stock" element={<DemoStock />} />
                     <Route path="/blog" element={<Blog />} />
                     <Route path="/about" element={<AboutUs />} />
 
                     {/* Auth Routes */}
                     <Route path="/login" element={<Login />} />
-                    {/* Disable Register route and redirect to waitlist */}
-                    <Route path="/register" element={<Navigate to="/waitlist" replace />} />
+                    <Route path="/register" element={<Register />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
 
                     {/* Payment Routes */}
@@ -75,51 +56,37 @@ function App() {
                     {/* Protected Routes */}
                     <Route path="/dashboard" element={
                       <PrivateRoute>
-                        <WaitlistWrapper>
-                          <Dashboard />
-                        </WaitlistWrapper>
+                        <Dashboard />
                       </PrivateRoute>
                     } />
                     <Route path="/market" element={
                       <PrivateRoute>
-                        <WaitlistWrapper>
-                          <MarketPage />
-                        </WaitlistWrapper>
+                        <MarketPage />
                       </PrivateRoute>
                     } />
                     <Route path="/stock/:symbol" element={
                       <PrivateRoute>
-                        <WaitlistWrapper>
-                          <StockPage />
-                        </WaitlistWrapper>
+                        <StockPage />
                       </PrivateRoute>
                     } />
                     <Route path="/watchlist" element={
                       <PrivateRoute>
-                        <WaitlistWrapper>
-                          <Watchlist />
-                        </WaitlistWrapper>
+                        <Watchlist />
                       </PrivateRoute>
                     } />
                     <Route path="/screener" element={
                       <PrivateRoute>
-                        <WaitlistWrapper>
-                          <Screener />
-                        </WaitlistWrapper>
+                        <Screener />
                       </PrivateRoute>
                     } />
                     <Route path="/economic-news" element={
                       <PrivateRoute>
-                        <WaitlistWrapper>
-                          <EconomicalNews />
-                        </WaitlistWrapper>
+                        <EconomicalNews />
                       </PrivateRoute>
                     } />
                     <Route path="/profile" element={
                       <PrivateRoute>
-                        <WaitlistWrapper>
-                          <UserProfile />
-                        </WaitlistWrapper>
+                        <UserProfile />
                       </PrivateRoute>
                     } />
                   </Routes>
