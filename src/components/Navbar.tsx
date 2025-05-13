@@ -53,7 +53,7 @@ const Logo = () => (
     />
     
     {/* Logo text */}
-    <text x="45" y="25" fontFamily="Arial" fontSize="16" fontWeight="bold" fill="#0f172a">
+    <text x="45" y="25" fontFamily="Arial" fontSize="16" fontWeight="bold" fill="#ffffff">
       FinPulses.tech
     </text>
   </svg>
@@ -119,7 +119,7 @@ const Navbar: React.FC = () => {
   const navLinks = user ? authenticatedLinks : publicLinks;
 
   return (
-    <nav className="bg-white shadow-sm">
+    <nav className="bg-gray-900 text-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
@@ -137,8 +137,8 @@ const Navbar: React.FC = () => {
                 to={link.path}
                 className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium ${
                   location.pathname === link.path 
-                    ? 'bg-blue-50 text-blue-600' 
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    ? 'bg-blue-900 text-blue-300' 
+                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
                 }`}
               >
                 {link.icon && <span>{link.icon}</span>}
@@ -151,13 +151,13 @@ const Navbar: React.FC = () => {
               <>
                 <Link
                   to="/demo-stock"
-                  className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Try Demo
                 </Link>
                 <Link
                   to="/login"
-                  className="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-blue-400 hover:text-blue-300 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Login
                 </Link>
@@ -166,7 +166,7 @@ const Navbar: React.FC = () => {
             {!user && (
               <Link
                 to="/register"
-                className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium"
+                className="bg-blue-700 text-white hover:bg-blue-600 px-4 py-2 rounded-md text-sm font-medium"
               >
                 Sign Up
               </Link>
@@ -175,31 +175,31 @@ const Navbar: React.FC = () => {
               <div className="relative" ref={profileMenuRef}>
                 <button
                   onClick={toggleProfileMenu}
-                  className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 focus:outline-none"
+                  className="flex items-center space-x-2 text-gray-300 hover:text-white focus:outline-none"
                 >
                   <UserCircle className="h-6 w-6" />
                   <span className="hidden md:block">{userData?.username || user.email}</span>
                   <ChevronDown className="h-4 w-4" />
                 </button>
                 {showProfileMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                  <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-1 z-10">
                     <Link
                       to="/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
                       onClick={() => setShowProfileMenu(false)}
                     >
                       Profile
                     </Link>
                     <Link
                       to="/settings"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
                       onClick={() => setShowProfileMenu(false)}
                     >
                       Settings
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
                     >
                       Logout
                     </button>
@@ -209,7 +209,7 @@ const Navbar: React.FC = () => {
             )}
             <button
               onClick={toggleMenu}
-              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
+              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -226,8 +226,8 @@ const Navbar: React.FC = () => {
                   to={link.path}
                   className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium ${
                     location.pathname === link.path 
-                      ? 'bg-blue-50 text-blue-600' 
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      ? 'bg-blue-900 text-blue-300' 
+                      : 'text-gray-300 hover:text-white hover:bg-gray-800'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >

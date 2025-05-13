@@ -34,7 +34,7 @@ function App() {
                 {/* Database check component to verify Supabase tables */}
                 <DatabaseCheck />
                 
-                <div className="min-h-screen bg-gray-100">
+                <div className="min-h-screen bg-black text-white">
                   <Navbar />
                   <Routes>
                     {/* Public Routes - Accessible without authentication */}
