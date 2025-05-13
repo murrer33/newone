@@ -220,7 +220,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({ historicalData }) => 
         </div>
         <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
           <p className="text-sm text-blue-700 dark:text-blue-400">
-            Predictions are generated using a statistical model trained on historical price data. The model considers trends, volatility, and market patterns to provide estimates with confidence intervals.
+          The forecasts are generated using a statistical model trained on historical price data. The model takes into account trends, volatility and market patterns to provide forecasts with confidence intervals. These forecasts are predictions of the model, not investment advice. This data is not intended as investment advice, but rather as a guide to making an investment.
           </p>
         </div>
       </div>

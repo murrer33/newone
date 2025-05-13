@@ -23,6 +23,7 @@ import {
   generateSocialSentiment,
   generateStockNews,
 } from '../utils/mockData';
+import StockForumSection from '../components/StockForumSection';
 
 const StockPage: React.FC = () => {
   const { symbol } = useParams<{ symbol: string }>(); // useParams should now work
@@ -313,6 +314,16 @@ const StockPage: React.FC = () => {
             )}
           </DataLoadingPlaceholder>
         </div>
+      </div>
+      
+      {/* Additional sections */}
+      <div className="grid grid-cols-1 gap-6 mt-6">
+        {mockCompanyProfile && (
+          <CompanyProfile profile={mockCompanyProfile} />
+        )}
+        
+        {/* Stock Forum Section */}
+        <StockForumSection stockSymbol={symbol} />
       </div>
     </div>
   );

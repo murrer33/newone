@@ -22,6 +22,7 @@ import DemoStock from "./pages/DemoStock";
 import Navbar from './components/Navbar';
 import Blog from "./pages/Blog";
 import AboutUs from "./pages/AboutUs";
+import AdvisorForum from "./pages/AdvisorForum";
 
 function App() {
   return (
@@ -87,6 +88,11 @@ function App() {
                     <Route path="/profile" element={
                       <PrivateRoute>
                         <UserProfile />
+                      </PrivateRoute>
+                    } />
+                    <Route path="/advisor-forum" element={
+                      <PrivateRoute>
+                        <AdvisorForum />
                       </PrivateRoute>
                     } />
                   </Routes>

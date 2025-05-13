@@ -21,7 +21,9 @@ import {
   Settings,
   User,
   Share2,
-  ChevronDown
+  ChevronDown,
+  BookOpen,
+  UserCheck
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
@@ -113,6 +115,7 @@ const Navbar: React.FC = () => {
     { name: 'Watchlist', path: '/watchlist', icon: <Eye className="h-5 w-5" /> },
     { name: 'Screener', path: '/screener', icon: <ScanLine className="h-5 w-5" /> },
     { name: 'Trending Stocks', path: '/market', icon: <TrendingUp className="h-5 w-5" /> },
+    { name: 'Advisor Forum', path: '/advisor-forum', icon: <UserCheck className="h-5 w-5" /> },
     { name: 'Profile', path: '/profile', icon: <User className="h-5 w-5" /> }
   ];
 
