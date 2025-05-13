@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
-import { Check, X, HelpCircle, ChevronRight } from 'lucide-react';
+import { Check, X, HelpCircle, ChevronRight, BarChart } from 'lucide-react';
 import { createCheckoutSession } from '../services/stripe';
 
 interface Feature {
@@ -127,11 +127,10 @@ const Pricing: React.FC = () => {
       
       // Create a checkout session with Stripe
       await createCheckoutSession({
-        userId: user.uid,
+        userId: user.id,
         planId: selectedPlan.id,
         planName: selectedPlan.name,
-        planPrice: selectedPlan.price,
-        isAnnual: billingPeriod === 'annual'
+        planPrice: selectedPlan.price
       });
       
       // Note: The redirect to Stripe Checkout happens in the createCheckoutSession function
@@ -166,6 +165,18 @@ const Pricing: React.FC = () => {
           <p className="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">
             Get access to AI-powered stock predictions and market insights with our flexible subscription options
           </p>
+
+          {user && (
+            <div className="mt-6">
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+              >
+                <BarChart className="mr-2 h-5 w-5" />
+                Go to Dashboard
+              </Link>
+            </div>
+          )}
 
           {/* Billing period toggle */}
           <div className="mt-8 flex justify-center">
@@ -383,30 +394,48 @@ const Pricing: React.FC = () => {
           <div className="px-6 py-12 sm:px-12 lg:flex lg:items-center lg:py-16">
             <div className="lg:w-0 lg:flex-1">
               <h2 className="text-3xl font-extrabold tracking-tight text-white">
-                Ready to start making smarter investment decisions?
+                {user 
+                  ? 'Want to check your personalized insights?' 
+                  : 'Ready to start making smarter investment decisions?'}
               </h2>
               <p className="mt-4 max-w-3xl text-lg text-blue-100">
-                Join thousands of investors already using FinPulses to analyze the market and make better trading decisions.
+                {user 
+                  ? 'Return to your dashboard to view your portfolio, market analytics, and AI predictions.'
+                  : 'Join thousands of investors already using FinPulses to analyze the market and make better trading decisions.'}
               </p>
             </div>
             <div className="mt-8 lg:mt-0 lg:ml-8">
               <div className="sm:flex">
-                <a
-                  href="/demo-stock"
-                  className="flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 transition-colors"
-                >
-                  Try Demo
-                </a>
-                <a
-                  href="/register"
-                  className="mt-3 sm:mt-0 sm:ml-3 flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-500 hover:bg-blue-600 transition-colors"
-                >
-                  Sign Up Now
-                </a>
+                {user ? (
+                  <Link
+                    to="/dashboard"
+                    className="flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 transition-colors"
+                  >
+                    <BarChart className="mr-2 h-5 w-5" />
+                    Go to Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <a
+                      href="/demo-stock"
+                      className="flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 transition-colors"
+                    >
+                      Try Demo
+                    </a>
+                    <a
+                      href="/register"
+                      className="mt-3 sm:mt-0 sm:ml-3 flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-500 hover:bg-blue-600 transition-colors"
+                    >
+                      Sign Up Now
+                    </a>
+                  </>
+                )}
               </div>
-              <p className="mt-3 text-sm text-blue-200">
-                No credit card required for demo. Cancel your subscription anytime.
-              </p>
+              {!user && (
+                <p className="mt-3 text-sm text-blue-200">
+                  No credit card required for demo. Cancel your subscription anytime.
+                </p>
+              )}
             </div>
           </div>
         </div>

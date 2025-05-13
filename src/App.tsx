@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { TokenProvider } from "./context/TokenContext";
 import { StockProvider } from "./context/StockContext";
@@ -24,6 +24,16 @@ import Blog from "./pages/Blog";
 import AboutUs from "./pages/AboutUs";
 import AdvisorForum from "./pages/AdvisorForum";
 
+// NavbarWrapper to conditionally render Navbar
+const NavbarWrapper = () => {
+  const location = useLocation();
+  const hiddenNavbarPaths = ['/', '/home', '/about', '/blog', '/pricing'];
+  
+  const shouldShowNavbar = !hiddenNavbarPaths.includes(location.pathname);
+  
+  return shouldShowNavbar ? <Navbar /> : null;
+};
+
 function App() {
   return (
     <>
@@ -36,7 +46,9 @@ function App() {
                 <DatabaseCheck />
                 
                 <div className="min-h-screen bg-black text-white">
-                  <Navbar />
+                  <Routes>
+                    <Route path="*" element={<NavbarWrapper />} />
+                  </Routes>
                   <Routes>
                     {/* Public Routes - Accessible without authentication */}
                     <Route path="/" element={<Home />} />

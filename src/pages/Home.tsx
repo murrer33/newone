@@ -102,7 +102,9 @@ const Home: React.FC = () => {
         <nav className="relative z-10 px-6 py-6 lg:px-8">
           <div className="flex items-center justify-between mx-auto max-w-7xl">
             <div className="flex items-center">
-              <img src={logo} alt="FinPulses" className="h-10 md:h-12" />
+              <Link to={user ? "/dashboard" : "/"}>
+                <img src={logo} alt="FinPulses" className="h-10 md:h-12" />
+              </Link>
               <span className="ml-3 text-xl font-bold text-white">FinPulses</span>
             </div>
             <div className="flex space-x-2 md:space-x-4">
@@ -120,10 +122,11 @@ const Home: React.FC = () => {
               </Link>
               {user ? (
                 <Link 
-                  to="/profile" 
-                  className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+                  to="/dashboard" 
+                  className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
                 >
-                  Profile
+                  <BarChart className="w-4 h-4 mr-2" />
+                  Dashboard
                 </Link>
               ) : (
                 <Link 
@@ -150,18 +153,29 @@ const Home: React.FC = () => {
             Get real-time insights, predictions, and custom recommendations.
           </p>
           <div className="flex flex-col justify-center w-full gap-4 mt-10 sm:flex-row sm:max-w-lg">
-            <Link
-              to="/demo-stock"
-              className="flex items-center justify-center px-8 py-4 text-base font-medium text-blue-700 bg-white rounded-lg shadow-md hover:bg-gray-100 transition-all"
-            >
-              Try Demo <ArrowRight className="ml-2 w-5 h-5" />
-            </Link>
-            <Link
-              to="/waitlist"
-              className="flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all"
-            >
-              Join Waitlist <ArrowRight className="ml-2 w-5 h-5" />
-            </Link>
+            {user ? (
+              <Link
+                to="/dashboard"
+                className="flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all"
+              >
+                Go to Dashboard <ArrowRight className="ml-2 w-5 h-5" />
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/demo-stock"
+                  className="flex items-center justify-center px-8 py-4 text-base font-medium text-blue-700 bg-white rounded-lg shadow-md hover:bg-gray-100 transition-all"
+                >
+                  Try Demo <ArrowRight className="ml-2 w-5 h-5" />
+                </Link>
+                <Link
+                  to="/waitlist"
+                  className="flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all"
+                >
+                  Join Waitlist <ArrowRight className="ml-2 w-5 h-5" />
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Stats */}
