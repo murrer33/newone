@@ -153,29 +153,12 @@ const Home: React.FC = () => {
             Get real-time insights, predictions, and custom recommendations.
           </p>
           <div className="flex flex-col justify-center w-full gap-4 mt-10 sm:flex-row sm:max-w-lg">
-            {user ? (
-              <Link
-                to="/dashboard"
-                className="flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all"
-              >
-                Go to Dashboard <ArrowRight className="ml-2 w-5 h-5" />
-              </Link>
-            ) : (
-              <>
-                <Link
-                  to="/demo-stock"
-                  className="flex items-center justify-center px-8 py-4 text-base font-medium text-blue-700 bg-white rounded-lg shadow-md hover:bg-gray-100 transition-all"
-                >
-                  Try Demo <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
-                <Link
-                  to="/waitlist"
-                  className="flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all"
-                >
-                  Join Waitlist <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
-              </>
-            )}
+            <Link
+              to="/market"
+              className="flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all"
+            >
+              Dive In <ArrowRight className="ml-2 w-5 h-5" />
+            </Link>
           </div>
 
           {/* Stats */}
@@ -323,36 +306,6 @@ const Home: React.FC = () => {
         </div>
       </div>
 
-      {/* CTA Section */}
-      <div className="py-16 sm:py-24">
-        <div className="px-6 mx-auto max-w-7xl lg:px-8">
-          <div className="px-6 py-12 mx-auto max-w-4xl bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl sm:py-16 sm:px-12 lg:flex lg:items-center lg:gap-8">
-            <div className="max-w-xl mx-auto text-center lg:text-left lg:mx-0">
-              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                Ready to revolutionize your investment strategy?
-              </h2>
-              <p className="mt-4 text-lg text-indigo-100">
-                Join our waitlist today and be among the first to experience the future of AI-powered stock predictions.
-              </p>
-              <div className="flex flex-col items-center justify-center mt-8 lg:justify-start sm:flex-row sm:gap-4">
-                <Link
-                  to="/demo-stock"
-                  className="flex items-center justify-center w-full px-8 py-3 mb-4 text-base font-medium text-blue-700 bg-white rounded-md shadow-sm hover:bg-gray-100 sm:w-auto sm:mb-0"
-                >
-                  Try Demo <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
-                <Link
-                  to="/waitlist"
-                  className="flex items-center justify-center w-full px-8 py-3 text-base font-medium text-white bg-blue-800 rounded-md shadow-sm hover:bg-blue-900 sm:w-auto"
-                >
-                  Join Waitlist <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Footer */}
       <footer className="py-12 bg-gray-900">
         <div className="px-6 mx-auto max-w-7xl lg:px-8">
@@ -373,12 +326,6 @@ const Home: React.FC = () => {
                 className="text-sm text-gray-400 hover:text-white"
               >
                 About Us
-              </Link>
-              <Link 
-                to="/demo-stock" 
-                className="text-sm text-gray-400 hover:text-white"
-              >
-                Demo
               </Link>
             </div>
           </div>

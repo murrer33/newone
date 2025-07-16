@@ -149,30 +149,7 @@ const Navbar: React.FC = () => {
             ))}
           </div>
           <div className="flex items-center space-x-4">
-            {!user && (
-              <>
-                <Link
-                  to="/demo-stock"
-                  className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Try Demo
-                </Link>
-                <Link
-                  to="/login"
-                  className="text-blue-400 hover:text-blue-300 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Login
-                </Link>
-              </>
-            )}
-            {!user && (
-              <Link
-                to="/register"
-                className="bg-blue-700 text-white hover:bg-blue-600 px-4 py-2 rounded-md text-sm font-medium"
-              >
-                Sign Up
-              </Link>
-            )}
+            {/* Remove Login, Register, and Demo links for unauthenticated users */}
             {user && (
               <>
                 <Link

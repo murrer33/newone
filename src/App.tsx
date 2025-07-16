@@ -53,15 +53,14 @@ function App() {
                     {/* Public Routes - Accessible without authentication */}
                     <Route path="/" element={<Home />} />
                     <Route path="/home" element={<Home />} />
-                    <Route path="/waitlist" element={<Navigate to="/dashboard" replace />} />
-                    <Route path="/demo-stock" element={<DemoStock />} />
                     <Route path="/blog" element={<Blog />} />
                     <Route path="/about" element={<AboutUs />} />
-
-                    {/* Auth Routes */}
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    {/* Remove or redirect demo, login, register, and waitlist routes */}
+                    <Route path="/demo-stock" element={<Navigate to="/" replace />} />
+                    <Route path="/waitlist" element={<Navigate to="/" replace />} />
+                    <Route path="/login" element={<Navigate to="/" replace />} />
+                    <Route path="/register" element={<Navigate to="/" replace />} />
+                    <Route path="/forgot-password" element={<Navigate to="/" replace />} />
 
                     {/* Payment Routes */}
                     <Route path="/payment-success" element={<PrivateRoute><PaymentSuccess /></PrivateRoute>} />
