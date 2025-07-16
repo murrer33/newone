@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Clock, Calendar, Tag, User, ArrowRight, BarChart } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 
 interface BlogPost {
   id: string;
@@ -154,7 +153,6 @@ const Blog: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>(blogPosts);
-  const { user } = useAuth();
 
   // Filter posts based on search query and selected category
   useEffect(() => {
@@ -189,18 +187,6 @@ const Blog: React.FC = () => {
             <p className="mt-6 max-w-2xl mx-auto text-xl text-blue-100">
               Expert analysis, market trends, and investment strategies to help you make informed decisions.
             </p>
-            
-            {user && (
-              <div className="mt-6 mb-8">
-                <Link
-                  to="/dashboard"
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50"
-                >
-                  <BarChart className="mr-2 h-5 w-5" />
-                  Go to Dashboard
-                </Link>
-              </div>
-            )}
             
             {/* Search Bar */}
             <div className="mt-12 max-w-xl mx-auto">
@@ -363,56 +349,42 @@ const Blog: React.FC = () => {
         <div className="max-w-7xl mx-auto py-16 px-4 sm:py-20 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-extrabold text-white">
-              {user ? 'Ready to Return to Your Dashboard?' : 'Subscribe to Our Newsletter'}
+              Subscribe to Our Newsletter
             </h2>
             <p className="mt-4 text-lg leading-6 text-blue-200">
-              {user 
-                ? 'Go back to your dashboard to view your personalized market insights and analysis.' 
-                : 'Get the latest financial insights and market analysis delivered to your inbox.'}
+              Get the latest financial insights and market analysis delivered to your inbox.
             </p>
             <div className="mt-8 sm:flex sm:justify-center">
-              {user ? (
-                <div className="rounded-md shadow">
-                  <Link
-                    to="/dashboard"
-                    className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
-                  >
-                    <BarChart className="mr-2 h-5 w-5" />
-                    Return to Dashboard
-                  </Link>
-                </div>
-              ) : (
-                <div className="sm:flex-1 max-w-lg">
-                  <form className="sm:flex">
-                    <label htmlFor="email-address" className="sr-only">
-                      Email address
-                    </label>
-                    <input
-                      id="email-address"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      className="w-full sm:max-w-xs px-5 py-3 border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-blue-700 focus:ring-white"
-                      placeholder="Enter your email"
-                    />
-                    <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3 sm:flex-shrink-0">
-                      <button
-                        type="submit"
-                        className="w-full flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-blue-700 focus:ring-white"
-                      >
-                        Subscribe
-                      </button>
-                    </div>
-                  </form>
-                  <p className="mt-3 text-sm text-blue-200">
-                    We care about your data. Read our{' '}
-                    <a href="/privacy" className="font-medium text-white underline">
-                      Privacy Policy
-                    </a>
-                    .
-                  </p>
-                </div>
-              )}
+              <div className="sm:flex-1 max-w-lg">
+                <form className="sm:flex">
+                  <label htmlFor="email-address" className="sr-only">
+                    Email address
+                  </label>
+                  <input
+                    id="email-address"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    className="w-full sm:max-w-xs px-5 py-3 border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-blue-700 focus:ring-white"
+                    placeholder="Enter your email"
+                  />
+                  <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3 sm:flex-shrink-0">
+                    <button
+                      type="submit"
+                      className="w-full flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-blue-700 focus:ring-white"
+                    >
+                      Subscribe
+                    </button>
+                  </div>
+                </form>
+                <p className="mt-3 text-sm text-blue-200">
+                  We care about your data. Read our{' '}
+                  <a href="/privacy" className="font-medium text-white underline">
+                    Privacy Policy
+                  </a>
+                  .
+                </p>
+              </div>
             </div>
           </div>
         </div>

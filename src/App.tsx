@@ -38,21 +38,22 @@ function App() {
   return (
     <>
       <Router>
-        {/* Remove AuthProvider, TokenProvider, SubscriptionProvider, StockProvider */}
-        <div className="min-h-screen bg-black text-white">
-          <Routes>
-            <Route path="*" element={<NavbarWrapper />} />
-          </Routes>
-          <Routes>
-            {/* Public Routes - All accessible without authentication */}
-            <Route path="/" element={<Home />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/about" element={<AboutUs />} />
-            <Route path="/market" element={<MarketPage />} />
-            {/* Remove all auth and payment/profile/advisor routes */}
-          </Routes>
-        </div>
+        <StockProvider>
+          <div className="min-h-screen bg-black text-white">
+            <Routes>
+              <Route path="*" element={<NavbarWrapper />} />
+            </Routes>
+            <Routes>
+              {/* Public Routes - All accessible without authentication */}
+              <Route path="/" element={<Home />} />
+              <Route path="/home" element={<Home />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/about" element={<AboutUs />} />
+              <Route path="/market" element={<MarketPage />} />
+              {/* Remove all auth and payment/profile/advisor routes */}
+            </Routes>
+          </div>
+        </StockProvider>
       </Router>
     </>
   );

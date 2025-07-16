@@ -11,7 +11,6 @@ import {
   Search,
   Filter
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 import { 
   getForumPosts, 
   getCommentsForPost, 
@@ -38,7 +37,6 @@ const AdvisorForum: React.FC = () => {
   const [stockSymbol, setStockSymbol] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const { user } = useAuth();
 
   useEffect(() => {
     fetchPosts();
@@ -86,8 +84,8 @@ const AdvisorForum: React.FC = () => {
   };
 
   const handleCommentSubmit = async (postId: string) => {
-    if (!user) {
-      alert('You must be logged in to comment');
+    if (!isAdvisor) {
+      alert('Only verified financial advisors can comment in this forum');
       return;
     }
     
@@ -109,11 +107,6 @@ const AdvisorForum: React.FC = () => {
 
   const handleNewPostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!user) {
-      alert('You must be logged in to create a post');
-      return;
-    }
     
     if (!isAdvisor) {
       alert('Only verified financial advisors can create posts in this forum');
@@ -242,13 +235,6 @@ const AdvisorForum: React.FC = () => {
               This forum features analyses and insights from verified financial advisors. 
               While anyone can read and comment, only verified advisors can post new analyses.
               Advisors must pass our verification process to confirm their credentials.
-              {!isAdvisor && user && (
-                <span className="block mt-2">
-                  <a href="/apply-advisor" className="text-blue-400 hover:text-blue-300 underline">
-                    Apply to become a verified advisor
-                  </a>
-                </span>
-              )}
             </p>
           </div>
         </div>
@@ -368,7 +354,7 @@ const AdvisorForum: React.FC = () => {
                       <p className="text-gray-500 text-sm mb-4">No comments yet</p>
                     )}
                     
-                    {user ? (
+                    {isAdvisor && (
                       <div className="flex items-center">
                         <input
                           type="text"
@@ -385,8 +371,6 @@ const AdvisorForum: React.FC = () => {
                           <Send className="h-4 w-4" />
                         </button>
                       </div>
-                    ) : (
-                      <p className="text-gray-500 text-sm">Log in to comment</p>
                     )}
                   </div>
                 )}

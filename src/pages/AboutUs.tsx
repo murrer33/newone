@@ -1,7 +1,6 @@
 import React from 'react';
 import { BarChart, Brain, Globe, Shield, Award, Clock, Users, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 
 const features = [
   {
@@ -74,7 +73,6 @@ const stats = [
 ];
 
 const AboutUs: React.FC = () => {
-  const { user } = useAuth();
   
   return (
     <div className="min-h-screen bg-gray-50">
@@ -108,17 +106,7 @@ const AboutUs: React.FC = () => {
             <p className="mt-6 max-w-2xl mx-auto text-xl text-blue-100">
               Empowering investors with AI-driven market insights and analysis since 2024
             </p>
-            {user && (
-              <div className="mt-6">
-                <Link
-                  to="/dashboard"
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50"
-                >
-                  <BarChart className="mr-2 h-5 w-5" />
-                  Go to Dashboard
-                </Link>
-              </div>
-            )}
+            
           </div>
         </div>
       </div>
@@ -337,7 +325,7 @@ const AboutUs: React.FC = () => {
             <span className="block text-blue-300">Join thousands of investors using FinPulses today.</span>
           </h2>
           <div className="mt-8 flex lg:mt-0 lg:flex-shrink-0">
-            {user ? (
+            
               <div className="inline-flex rounded-md shadow">
                 <Link
                   to="/dashboard"
@@ -347,26 +335,24 @@ const AboutUs: React.FC = () => {
                   Go to Dashboard
                 </Link>
               </div>
-            ) : (
-              <>
-                <div className="inline-flex rounded-md shadow">
-                  <a
-                    href="/demo-stock"
-                    className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-gray-100"
-                  >
-                    Try Demo
-                  </a>
-                </div>
-                <div className="ml-3 inline-flex rounded-md shadow">
-                  <a
-                    href="/contact"
-                    className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                  >
-                    Contact Us
-                  </a>
-                </div>
-              </>
-            )}
+            
+              <div className="inline-flex rounded-md shadow">
+                <a
+                  href="/demo-stock"
+                  className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-gray-100"
+                >
+                  Try Demo
+                </a>
+              </div>
+              <div className="ml-3 inline-flex rounded-md shadow">
+                <a
+                  href="/contact"
+                  className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                >
+                  Contact Us
+                </a>
+              </div>
+            
           </div>
         </div>
       </div>
