@@ -3,21 +3,18 @@ import { Globe, TrendingUp, TrendingDown, Search, RefreshCw } from 'lucide-react
 import { useStocks } from '../context/StockContext';
 import StockCard from '../components/StockCard';
 import MarketStatusHeader from '../components/MarketStatusHeader';
-import DataLoadingPlaceholder from '../components/DataLoadingPlaceholder';
 import { useStockPageData } from '../hooks/useStockPageData';
 
 const MarketPage: React.FC = () => {
-  const { nasdaqStocks, bistStocks } = useStocks();
-  const { 
-    loading, 
-    error, 
-    marketStatus,
-    lastUpdated,
-    handleRefresh,
-    getPriceTypeMessage
-  } = useStockPageData();
+  // const { nasdaqStocks, bistStocks } = useStocks();
+  const { marketStatus } = useStockPageData();
   
-  const allStocks = [...nasdaqStocks, ...bistStocks];
+  // Instead of using nasdaqStocks/bistStocks, use 3 hardcoded stocks
+  const staticStocks = [
+    { symbol: 'AAPL', name: 'Apple Inc.', price: 172.99 },
+    { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 2834.50 },
+    { symbol: 'TSLA', name: 'Tesla Inc.', price: 709.67 },
+  ];
   const [searchTerm, setSearchTerm] = React.useState('');
   const [sortBy, setSortBy] = React.useState<'symbol' | 'price'>('symbol'); // Removed 'change'
   const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('asc');
@@ -31,7 +28,7 @@ const MarketPage: React.FC = () => {
     }
   };
 
-  const filteredStocks = allStocks.filter(
+  const filteredStocks = staticStocks.filter(
     (stock) =>
       stock.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
       stock.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -59,11 +56,7 @@ const MarketPage: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <MarketStatusHeader
         title="Market Overview"
-        loading={loading}
-        error={error}
         marketStatus={marketStatus}
-        lastUpdated={lastUpdated}
-        onRefresh={handleRefresh}
       />
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -122,13 +115,6 @@ const MarketPage: React.FC = () => {
                 Price {sortBy === 'price' && (sortDirection === 'asc' ? '↑' : '↓')}
               </button>
             </div>
-            
-            {loading && (
-              <div className="ml-4 text-sm text-gray-500 flex items-center">
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> 
-                Refreshing...
-              </div>
-            )}
           </div>
         </div>
         
@@ -140,18 +126,15 @@ const MarketPage: React.FC = () => {
         </div>
       </div>
       
-      <DataLoadingPlaceholder
-        isLoading={loading && sortedStocks.length === 0}
-        isEmpty={sortedStocks.length === 0 && !loading}
-        loadingMessage="Loading market data..."
-        emptyMessage={`No stocks found matching "${searchTerm}"`}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sortedStocks.map((stock) => (
-            <StockCard key={stock.symbol} stock={stock} marketStatus={marketStatus} />
-          ))}
-        </div>
-      </DataLoadingPlaceholder>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+        {staticStocks.map((stock) => (
+          <div key={stock.symbol} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{stock.symbol}</h2>
+            <p className="text-lg text-gray-700 dark:text-gray-300">{stock.name}</p>
+            <p className="text-3xl font-semibold text-gray-900 dark:text-white mt-2">${stock.price}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

@@ -38,78 +38,21 @@ function App() {
   return (
     <>
       <Router>
-        <AuthProvider>
-          <TokenProvider>
-            <StockProvider>
-              <SubscriptionProvider>
-                
-                <div className="min-h-screen bg-black text-white">
-                  <Routes>
-                    <Route path="*" element={<NavbarWrapper />} />
-                  </Routes>
-                  <Routes>
-                    {/* Public Routes - Accessible without authentication */}
-                    <Route path="/" element={<Home />} />
-                    <Route path="/home" element={<Home />} />
-                    <Route path="/blog" element={<Blog />} />
-                    <Route path="/about" element={<AboutUs />} />
-                    {/* Remove or redirect demo, login, register, and waitlist routes */}
-                    <Route path="/demo-stock" element={<Navigate to="/" replace />} />
-                    <Route path="/waitlist" element={<Navigate to="/" replace />} />
-                    <Route path="/login" element={<Navigate to="/" replace />} />
-                    <Route path="/register" element={<Navigate to="/" replace />} />
-                    <Route path="/forgot-password" element={<Navigate to="/" replace />} />
-
-                    {/* Payment Routes */}
-                    <Route path="/payment-success" element={<PrivateRoute><PaymentSuccess /></PrivateRoute>} />
-
-                    {/* Protected Routes */}
-                    <Route path="/dashboard" element={
-                      <PrivateRoute>
-                        <Dashboard />
-                      </PrivateRoute>
-                    } />
-                    <Route path="/market" element={
-                      <PrivateRoute>
-                        <MarketPage />
-                      </PrivateRoute>
-                    } />
-                    <Route path="/stock/:symbol" element={
-                      <PrivateRoute>
-                        <StockPage />
-                      </PrivateRoute>
-                    } />
-                    <Route path="/watchlist" element={
-                      <PrivateRoute>
-                        <Watchlist />
-                      </PrivateRoute>
-                    } />
-                    <Route path="/screener" element={
-                      <PrivateRoute>
-                        <Screener />
-                      </PrivateRoute>
-                    } />
-                    <Route path="/economic-news" element={
-                      <PrivateRoute>
-                        <EconomicalNews />
-                      </PrivateRoute>
-                    } />
-                    <Route path="/profile" element={
-                      <PrivateRoute>
-                        <UserProfile />
-                      </PrivateRoute>
-                    } />
-                    <Route path="/advisor-forum" element={
-                      <PrivateRoute>
-                        <AdvisorForum />
-                      </PrivateRoute>
-                    } />
-                  </Routes>
-                </div>
-              </SubscriptionProvider>
-            </StockProvider>
-          </TokenProvider>
-        </AuthProvider>
+        {/* Remove AuthProvider, TokenProvider, SubscriptionProvider, StockProvider */}
+        <div className="min-h-screen bg-black text-white">
+          <Routes>
+            <Route path="*" element={<NavbarWrapper />} />
+          </Routes>
+          <Routes>
+            {/* Public Routes - All accessible without authentication */}
+            <Route path="/" element={<Home />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/about" element={<AboutUs />} />
+            <Route path="/market" element={<MarketPage />} />
+            {/* Remove all auth and payment/profile/advisor routes */}
+          </Routes>
+        </div>
       </Router>
     </>
   );

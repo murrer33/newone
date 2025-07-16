@@ -4,16 +4,16 @@ import MarketStatus from './MarketStatus';
 
 interface MarketStatusHeaderProps {
   title: string;
-  loading: boolean;
-  error: string | null;
+  loading?: boolean;
+  error?: string | null;
   marketStatus: {
     isOpen: boolean | null;
     holiday: string | null;
-    loading: boolean;
-    error: string | null;
+    loading?: boolean;
+    error?: string | null;
   };
-  lastUpdated: Date | null;
-  onRefresh: () => void;
+  lastUpdated?: Date | null;
+  onRefresh?: () => void;
 }
 
 const formatDateTime = (date: Date | null) => {
@@ -38,7 +38,7 @@ const MarketStatusHeader: React.FC<MarketStatusHeaderProps> = ({
         <div className="flex items-center">
           <div className="flex items-center mr-4 text-sm text-gray-500 dark:text-gray-400">
             <Clock className="h-4 w-4 mr-1" />
-            <span>Last updated: {formatDateTime(lastUpdated)}</span>
+            <span>Last updated: {formatDateTime(lastUpdated ?? null)}</span>
           </div>
           <button 
             onClick={onRefresh}
