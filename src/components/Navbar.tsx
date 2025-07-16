@@ -100,9 +100,7 @@ const Navbar: React.FC = () => {
   };
 
   const publicLinks = [
-    { name: 'Home', path: '/', icon: <Home className="h-5 w-5" /> },
-    { name: 'Blog', path: '/blog', icon: <Newspaper className="h-5 w-5" /> },
-    { name: 'About Us', path: '/about', icon: <Compass className="h-5 w-5" /> }
+    { name: 'Home', path: '/', icon: <Home className="h-5 w-5" /> }
   ];
 
   const navLinks = publicLinks;

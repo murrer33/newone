@@ -47,9 +47,8 @@ function App() {
               {/* Public Routes - All accessible without authentication */}
               <Route path="/" element={<Home />} />
               <Route path="/home" element={<Home />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/about" element={<AboutUs />} />
               <Route path="/market" element={<MarketPage />} />
+              <Route path="/stock/:symbol" element={<StockPage />} />
               {/* Remove all auth and payment/profile/advisor routes */}
             </Routes>
           </div>

@@ -4,6 +4,7 @@ import { useStocks } from '../context/StockContext';
 import StockCard from '../components/StockCard';
 import MarketStatusHeader from '../components/MarketStatusHeader';
 import { useStockPageData } from '../hooks/useStockPageData';
+import { Link } from 'react-router-dom';
 
 const MarketPage: React.FC = () => {
   // const { nasdaqStocks, bistStocks } = useStocks();
@@ -128,11 +129,11 @@ const MarketPage: React.FC = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
         {staticStocks.map((stock) => (
-          <div key={stock.symbol} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <Link key={stock.symbol} to={`/stock/${stock.symbol}`} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 block hover:shadow-lg transition-shadow">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">{stock.symbol}</h2>
             <p className="text-lg text-gray-700 dark:text-gray-300">{stock.name}</p>
             <p className="text-3xl font-semibold text-gray-900 dark:text-white mt-2">${stock.price}</p>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
