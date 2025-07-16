@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, LineChart, BarChart3, TrendingUp, BarChart, Zap, Shield, X, Check } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 import { submitToGoogleForm } from '../utils/googleFormsIntegration';
 import { supabase } from '../services/supabaseClient';
 
@@ -9,7 +8,6 @@ import { supabase } from '../services/supabaseClient';
 import logo from '../assets/logo.svg';
 
 const Home: React.FC = () => {
-  const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Form state
@@ -102,7 +100,7 @@ const Home: React.FC = () => {
         <nav className="relative z-10 px-6 py-6 lg:px-8">
           <div className="flex items-center justify-between mx-auto max-w-7xl">
             <div className="flex items-center">
-              <Link to={user ? "/dashboard" : "/"}>
+              <Link to="/">
                 <img src={logo} alt="FinPulses" className="h-10 md:h-12" />
               </Link>
               <span className="ml-3 text-xl font-bold text-white">FinPulses</span>
@@ -120,22 +118,6 @@ const Home: React.FC = () => {
               >
                 About Us
               </Link>
-              {user ? (
-                <Link 
-                  to="/dashboard" 
-                  className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  <BarChart className="w-4 h-4 mr-2" />
-                  Dashboard
-                </Link>
-              ) : (
-                <Link 
-                  to="/login" 
-                  className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  Login
-                </Link>
-              )}
             </div>
           </div>
         </nav>
