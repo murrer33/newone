@@ -42,8 +42,6 @@ function App() {
           <TokenProvider>
             <StockProvider>
               <SubscriptionProvider>
-                {/* Database check component to verify Supabase tables */}
-                <DatabaseCheck />
                 
                 <div className="min-h-screen bg-black text-white">
                   <Routes>
