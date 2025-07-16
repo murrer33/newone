@@ -28,8 +28,8 @@ export const StockProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [nasdaqStocks, setNasdaqStocks] = useState<Stock[]>([
     { symbol: "AAPL", name: "Apple Inc.", price: 150 },
-    { symbol: "MSFT", name: "Microsoft Corporation", price: 300 },
     { symbol: "GOOGL", name: "Alphabet Inc.", price: 2800 },
+    { symbol: "TSLA", name: "Tesla Inc.", price: 700 },
   ]);
   const [bistStocks, setBistStocks] = useState<Stock[]>([
     { symbol: "THYAO", name: "Turkish Airlines", price: 135 },
