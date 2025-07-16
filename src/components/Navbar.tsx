@@ -25,9 +25,6 @@ import {
   BookOpen,
   UserCheck
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useSubscription } from '../context/SubscriptionContext';
-import { useToken } from '../context/TokenContext';
 // import logo from '../assets/logo.svg';
 
 // SVG logo with circuit board design and stock chart
@@ -69,9 +66,6 @@ const Navbar: React.FC = () => {
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
-  const { currentPlan } = useSubscription();
-  const { userData } = useToken();
 
   // Close profile menu when clicking outside
   useEffect(() => {
@@ -97,7 +91,7 @@ const Navbar: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await logout();
+      // await logout(); // This line was removed as per the edit hint
       setShowProfileMenu(false);
       navigate('/login');
     } catch (error) {
@@ -111,14 +105,7 @@ const Navbar: React.FC = () => {
     { name: 'About Us', path: '/about', icon: <Compass className="h-5 w-5" /> }
   ];
 
-  const authenticatedLinks = [
-    { name: 'Economic News', path: '/economic-news', icon: <Newspaper className="h-5 w-5" /> },
-    { name: 'Popular Stocks', path: '/market', icon: <TrendingUp className="h-5 w-5" /> },
-    { name: 'Market', path: '/market', icon: <BarChart className="h-5 w-5" /> },
-    { name: 'Screener', path: '/screener', icon: <ScanLine className="h-5 w-5" /> },
-  ];
-
-  const navLinks = user ? authenticatedLinks : publicLinks;
+  const navLinks = publicLinks;
 
   return (
     <nav className="bg-gray-900 text-white shadow-sm">
@@ -126,7 +113,7 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Logo linkTo={user ? "/dashboard" : "/"} />
+              <Logo linkTo="/" />
             </div>
           </div>
           <div className="hidden md:flex items-center space-x-1">
@@ -146,18 +133,6 @@ const Navbar: React.FC = () => {
             ))}
           </div>
           <div className="flex items-center space-x-4">
-            {/* Only show navLinks for authenticated users, no profile menu or logout */}
-            {user && (
-              <>
-                <Link
-                  to="/dashboard"
-                  className="bg-blue-700 text-white hover:bg-blue-600 px-4 py-2 rounded-md text-sm font-medium flex items-center"
-                >
-                  <BarChart className="h-4 w-4 mr-2" />
-                  Dashboard
-                </Link>
-              </>
-            )}
             <button
               onClick={toggleMenu}
               className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none"
